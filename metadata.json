@@ -1,0 +1,6 @@
+{
+  "name": "SIP-BMD Inspektorat Kota Banjarmasin",
+  "description": "Sistem Informasi Pelimpahan Barang Milik Daerah (BMD) Inspektorat Kota Banjarmasin. Mengelola inventarisasi aset, pemakai barang, penerbitan BAST, SK Pemegang BMD, dan SPTJM.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
