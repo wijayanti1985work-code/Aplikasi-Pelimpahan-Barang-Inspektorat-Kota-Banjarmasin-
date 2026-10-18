@@ -8,15 +8,15 @@ export const RegulasiView: React.FC = () => {
       <div className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+            <span className="text-[11px] font-bold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded border border-[#0F766E]/20">
               Dasar Hukum & Tata Kelola
             </span>
-            <span className="text-xs text-slate-400">Inspektorat Kota Banjarmasin</span>
+            <span className="text-xs text-[#6B7280]">Inspektorat Kota Banjarmasin</span>
           </div>
-          <h2 className="text-lg font-bold text-slate-900 mt-1">
+          <h2 className="text-lg font-bold text-[#111827] mt-1">
             Panduan & Regulasi Pengelolaan Barang Milik Daerah (BMD)
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#6B7280]">
             Pedoman hak dan kewajiban aparatur pemakai aset, ketentuan BAST, dan penyelesaian ganti rugi.
           </p>
         </div>
@@ -25,12 +25,12 @@ export const RegulasiView: React.FC = () => {
       {/* Grid of Legal references */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Dasar Hukum */}
-        <div className="bg-white p-6 rounded-2xl shadow-xs border border-slate-200 space-y-3">
+        <div className="bg-white p-6 rounded-2xl shadow-xs border border-[#E5E7EB] space-y-3">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-[#CCFBF1] text-[#0F766E] flex items-center justify-center">
               <Scale className="w-4 h-4" />
             </div>
-            <h3 className="font-bold text-sm text-slate-900">Dasar Hukum Pengelolaan BMD</h3>
+            <h3 className="font-bold text-sm text-[#111827]">Dasar Hukum Pengelolaan BMD</h3>
           </div>
 
           <ul className="space-y-2 text-xs text-slate-600">

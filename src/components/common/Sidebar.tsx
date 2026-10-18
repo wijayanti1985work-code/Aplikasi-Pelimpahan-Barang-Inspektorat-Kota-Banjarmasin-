@@ -7,10 +7,9 @@ import {
   UserCog,
   BookOpen,
   PlusCircle,
-  FileText,
+  Building2,
   Shield,
   Layers,
-  Building2,
 } from 'lucide-react';
 
 export type NavTab = 'dashboard' | 'pelimpahan' | 'pegawai' | 'barang' | 'pejabat' | 'instansi' | 'regulasi';
@@ -49,21 +48,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Pelimpahan BMD',
       icon: FileCheck2,
       badge: counts.pelimpahan,
-      badgeColor: 'bg-blue-100 text-blue-800',
     },
     {
       id: 'pegawai' as NavTab,
       label: 'Pegawai (Pemakai BMD)',
       icon: Users,
       badge: counts.pegawai,
-      badgeColor: 'bg-slate-100 text-slate-700',
     },
     {
       id: 'barang' as NavTab,
       label: 'Inventaris BMD',
       icon: Package,
       badge: counts.barang,
-      badgeColor: 'bg-emerald-100 text-emerald-800',
     },
     {
       id: 'pejabat' as NavTab,
@@ -86,25 +82,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
   ];
 
   const content = (
-    <div className="w-64 bg-slate-900 text-slate-300 flex flex-col shrink-0 min-h-[calc(100vh-61px)] border-r border-slate-800">
-      {/* Quick Action Button */}
-      <div className="p-4 border-b border-slate-800/80">
+    <div className="w-64 bg-white text-[#111827] flex flex-col shrink-0 min-h-[calc(100vh-57px)] border-r border-[#E5E7EB]">
+      {/* Primary Action Button: #0F766E (Deep Teal) */}
+      <div className="p-4 border-b border-[#E5E7EB]">
         <button
           type="button"
           onClick={() => {
             onOpenCreatePelimpahan();
             if (onCloseMobile) onCloseMobile();
           }}
-          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 active:from-blue-700 active:to-indigo-700 text-white rounded-xl font-medium text-xs shadow-md shadow-blue-900/30 transition-all cursor-pointer group"
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-[#0F766E] hover:bg-[#0d6861] active:bg-[#115E59] text-white rounded-xl font-semibold text-xs shadow-sm transition-all cursor-pointer group"
         >
-          <PlusCircle className="w-4 h-4 text-white group-hover:scale-110 transition-transform" />
+          <PlusCircle className="w-4 h-4 text-white group-hover:rotate-90 transition-transform duration-200" />
           <span>Pelimpahan BMD Baru</span>
         </button>
       </div>
 
       {/* Navigation Links */}
       <nav className="flex-1 p-3 space-y-1 overflow-y-auto">
-        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400">
+        <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-[#6B7280]">
           Menu Navigasi
         </div>
         {menuItems.map(item => {
@@ -118,20 +114,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 onSelectTab(item.id);
                 if (onCloseMobile) onCloseMobile();
               }}
-              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer ${
+              className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs transition-all cursor-pointer ${
                 isActive
-                  ? 'bg-blue-600/90 text-white shadow-xs font-semibold'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+                  ? 'bg-[#CCFBF1] text-[#0F766E] font-bold shadow-2xs border-l-4 border-[#0F766E]'
+                  : 'text-[#6B7280] hover:bg-[#F3F4F6] hover:text-[#111827] font-medium'
               }`}
             >
               <div className="flex items-center gap-2.5">
-                <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                <Icon className={`w-4 h-4 ${isActive ? 'text-[#0F766E]' : 'text-[#6B7280]'}`} />
                 <span>{item.label}</span>
               </div>
               {item.badge !== null && (
                 <span
-                  className={`text-[11px] px-2 py-0.5 rounded-md font-semibold ${
-                    isActive ? 'bg-white/20 text-white' : item.badgeColor
+                  className={`text-[11px] px-2 py-0.5 rounded-md font-bold ${
+                    isActive
+                      ? 'bg-[#0F766E] text-white'
+                      : 'bg-[#F3F4F6] text-[#6B7280] border border-[#E5E7EB]'
                   }`}
                 >
                   {item.badge}
@@ -143,17 +141,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
       </nav>
 
       {/* Footer Info Box */}
-      <div className="p-4 border-t border-slate-800 text-[11px] text-slate-400 space-y-2">
-        <div className="flex items-center gap-2 text-slate-300 font-semibold text-xs">
-          <Shield className="w-4 h-4 text-emerald-400" />
-          <span>Pengelolaan Aset Daerah</span>
+      <div className="p-4 border-t border-[#E5E7EB] bg-[#F3F4F6]/50 space-y-2">
+        <div className="flex items-center gap-2 text-[#111827] font-bold text-xs">
+          <Shield className="w-4 h-4 text-[#0F766E]" />
+          <span>Pengelolaan BMD Daerah</span>
         </div>
-        <p className="text-slate-500 leading-relaxed text-[10px]">
-          Sesuai Permendagri No. 19 Tahun 2016 & Perwali Kota Banjarmasin.
+        <p className="text-[#6B7280] leading-relaxed text-[10px]">
+          Sesuai Permendagri No. 19 Tahun 2016 & Standar Tata Kelola Kota Banjarmasin.
         </p>
-        <div className="pt-1 text-[10px] text-slate-400 flex items-center justify-between">
-          <span>Barang Dipakai:</span>
-          <span className="font-bold text-emerald-400">{counts.barangDipakai} Unit</span>
+        <div className="pt-1.5 border-t border-[#E5E7EB] text-[10px] flex items-center justify-between">
+          <span className="text-[#6B7280]">Barang Terpakai:</span>
+          <span className="font-bold text-[#0F766E] bg-[#CCFBF1] px-1.5 py-0.5 rounded">
+            {counts.barangDipakai} Unit
+          </span>
         </div>
       </div>
     </div>
@@ -170,7 +170,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isMobileOpen && (
         <div className="no-print fixed inset-0 z-40 md:hidden flex">
           <div
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-black/40 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
           />
           <div className="relative z-50 flex h-full">

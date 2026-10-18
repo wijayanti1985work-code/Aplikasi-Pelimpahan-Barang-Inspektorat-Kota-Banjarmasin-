@@ -75,15 +75,15 @@ export const PelimpahanView: React.FC<PelimpahanViewProps> = ({
       <div className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+            <span className="text-[11px] font-bold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded border border-[#0F766E]/20">
               Transaksi Penggunaan Aset
             </span>
-            <span className="text-xs text-slate-400">Inspektorat Kota Banjarmasin</span>
+            <span className="text-xs text-[#6B7280]">Inspektorat Kota Banjarmasin</span>
           </div>
-          <h2 className="text-lg font-bold text-slate-900 mt-1">
+          <h2 className="text-lg font-bold text-[#111827] mt-1">
             Data Pelimpahan Barang Milik Daerah (BMD)
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#6B7280]">
             Kelola penyerahan aset kepada pegawai, cetak BAST, SK Penetapan Pemegang, dan SPTJM Bermaterai.
           </p>
         </div>
@@ -92,7 +92,7 @@ export const PelimpahanView: React.FC<PelimpahanViewProps> = ({
           <button
             type="button"
             onClick={onOpenCreate}
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 active:bg-blue-900 rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-4 py-2.5 text-xs font-semibold text-white bg-[#0F766E] hover:bg-[#0d6861] active:bg-[#115E59] rounded-xl shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Buat Pelimpahan Baru

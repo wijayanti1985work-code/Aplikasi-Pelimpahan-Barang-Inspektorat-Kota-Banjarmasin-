@@ -1,0 +1,134 @@
+{
+  "entities": {
+    "Instansi": {
+      "title": "Instansi",
+      "description": "Konfigurasi instansi pemerintah dan kop dinas resmi",
+      "type": "object",
+      "properties": {
+        "namaPemda": { "type": "string" },
+        "namaInstansi": { "type": "string" },
+        "subJudul": { "type": "string" },
+        "alamat": { "type": "string" },
+        "telepon": { "type": "string" },
+        "faksimile": { "type": "string" },
+        "email": { "type": "string" },
+        "website": { "type": "string" },
+        "semboyan": { "type": "string" },
+        "logoUtamaUrl": { "type": "string" },
+        "logoSekunderUrl": { "type": "string" },
+        "tampilkanLogoKanan": { "type": "boolean" },
+        "ketebalanGarisKop": { "type": "string" }
+      },
+      "required": ["namaPemda", "namaInstansi"]
+    },
+    "Pejabat": {
+      "title": "Pejabat",
+      "description": "Master data pejabat penandatangan dokumen BMD",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "peran": { "type": "string" },
+        "nama": { "type": "string" },
+        "nip": { "type": "string" },
+        "pangkatGol": { "type": "string" },
+        "jabatan": { "type": "string" },
+        "instansi": { "type": "string" }
+      },
+      "required": ["id", "nama", "nip", "jabatan"]
+    },
+    "Pegawai": {
+      "title": "Pegawai",
+      "description": "Data pegawai penerima dan pemakai barang milik daerah",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nama": { "type": "string" },
+        "nip": { "type": "string" },
+        "pangkatGol": { "type": "string" },
+        "jabatan": { "type": "string" },
+        "unitKerja": { "type": "string" },
+        "status": { "type": "string" },
+        "masaKerjaJabatan": { "type": "string" },
+        "email": { "type": "string" },
+        "telepon": { "type": "string" }
+      },
+      "required": ["id", "nama", "nip"]
+    },
+    "BarangBMD": {
+      "title": "BarangBMD",
+      "description": "Data inventaris barang milik daerah",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kodeBarang": { "type": "string" },
+        "namaBarang": { "type": "string" },
+        "kategori": { "type": "string" },
+        "tahunPerolehan": { "type": "number" },
+        "nomorPolisi": { "type": "string" },
+        "nomorRangka": { "type": "string" },
+        "nomorMesin": { "type": "string" },
+        "statusPemakaian": { "type": "string" }
+      },
+      "required": ["id", "kodeBarang", "namaBarang", "statusPemakaian"]
+    },
+    "PelimpahanBMD": {
+      "title": "PelimpahanBMD",
+      "description": "Catatan pelimpahan pemakaian barang milik daerah kepada pegawai",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nomorSurat": { "type": "string" },
+        "nomorBAP": { "type": "string" },
+        "nomorSP": { "type": "string" },
+        "idPegawai": { "type": "string" },
+        "barangIds": { "type": "array" },
+        "tanggal": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "idPegawai", "tanggal", "status"]
+    },
+    "GoogleSheetBackup": {
+      "title": "GoogleSheetBackup",
+      "description": "Riwayat pencadangan data ke Google Sheets",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "spreadsheetId": { "type": "string" },
+        "spreadsheetUrl": { "type": "string" },
+        "title": { "type": "string" },
+        "totalPegawai": { "type": "number" },
+        "totalBarang": { "type": "number" },
+        "totalPelimpahan": { "type": "number" },
+        "userEmail": { "type": "string" }
+      },
+      "required": ["id", "timestamp", "spreadsheetUrl"]
+    }
+  },
+  "firestore": {
+    "/instansi/{id}": {
+      "schema": "Instansi",
+      "description": "Koleksi konfigurasi instansi dan kop dinas"
+    },
+    "/pejabat/{pejabatId}": {
+      "schema": "Pejabat",
+      "description": "Koleksi data pejabat penandatangan"
+    },
+    "/pegawai/{pegawaiId}": {
+      "schema": "Pegawai",
+      "description": "Koleksi data pegawai pemakai BMD"
+    },
+    "/barang/{barangId}": {
+      "schema": "BarangBMD",
+      "description": "Koleksi inventaris barang milik daerah"
+    },
+    "/pelimpahan/{pelimpahanId}": {
+      "schema": "PelimpahanBMD",
+      "description": "Koleksi riwayat pelimpahan dan dokumen BAP/SP"
+    },
+    "/gsheet_backups/{backupId}": {
+      "schema": "GoogleSheetBackup",
+      "description": "Koleksi riwayat cadangan Google Spreadsheet"
+    }
+  }
+}

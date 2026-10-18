@@ -81,15 +81,15 @@ export const PegawaiView: React.FC<PegawaiViewProps> = ({
       <div className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+            <span className="text-[11px] font-bold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded border border-[#0F766E]/20">
               Master Data Pegawai
             </span>
-            <span className="text-xs text-slate-400">Inspektorat Kota Banjarmasin</span>
+            <span className="text-xs text-[#6B7280]">Inspektorat Kota Banjarmasin</span>
           </div>
-          <h2 className="text-lg font-bold text-slate-900 mt-1">
+          <h2 className="text-lg font-bold text-[#111827] mt-1">
             Data Pegawai (Pemakai BMD)
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#6B7280]">
             Kelola data aparatur Inspektorat pemegang hak pakai aset Barang Milik Daerah.
           </p>
         </div>
@@ -98,20 +98,20 @@ export const PegawaiView: React.FC<PegawaiViewProps> = ({
           <button
             type="button"
             onClick={() => exportPegawaiToExcel(pegawaiList)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#111827] bg-white hover:bg-[#F3F4F6] border border-[#E5E7EB] rounded-xl shadow-2xs transition-colors cursor-pointer"
             title="Ekspor seluruh data pegawai ke file Excel"
           >
-            <Download className="w-4 h-4 text-slate-500" />
+            <Download className="w-4 h-4 text-[#6B7280]" />
             Ekspor Excel
           </button>
 
           <button
             type="button"
             onClick={() => setIsImportOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#0F766E] bg-[#CCFBF1] hover:bg-teal-100 border border-teal-300 rounded-xl shadow-2xs transition-colors cursor-pointer"
             title="Impor data dari file Excel (.xlsx / .csv)"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <FileSpreadsheet className="w-4 h-4 text-[#0F766E]" />
             Impor dari Excel
           </button>
 
@@ -121,7 +121,7 @@ export const PegawaiView: React.FC<PegawaiViewProps> = ({
               setEditingPegawai(null);
               setIsModalOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#0F766E] hover:bg-[#0d6861] active:bg-[#115E59] rounded-xl shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Tambah Pegawai

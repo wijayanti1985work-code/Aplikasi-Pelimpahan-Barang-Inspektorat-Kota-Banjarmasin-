@@ -72,15 +72,15 @@ export const BarangView: React.FC<BarangViewProps> = ({
       <div className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+            <span className="text-[11px] font-bold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded border border-[#0F766E]/20">
               Master Inventaris Aset
             </span>
-            <span className="text-xs text-slate-400">Inspektorat Kota Banjarmasin</span>
+            <span className="text-xs text-[#6B7280]">Inspektorat Kota Banjarmasin</span>
           </div>
-          <h2 className="text-lg font-bold text-slate-900 mt-1">
+          <h2 className="text-lg font-bold text-[#111827] mt-1">
             Data Barang Milik Daerah (BMD)
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#6B7280]">
             Daftar inventaris sarana dan prasarana kerja pengawasan, perlengkapan IT, dan kendaraan dinas.
           </p>
         </div>
@@ -89,20 +89,20 @@ export const BarangView: React.FC<BarangViewProps> = ({
           <button
             type="button"
             onClick={() => exportBarangToExcel(barangList)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-700 bg-white hover:bg-slate-50 border border-slate-300 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#111827] bg-white hover:bg-[#F3F4F6] border border-[#E5E7EB] rounded-xl shadow-2xs transition-colors cursor-pointer"
             title="Ekspor seluruh daftar inventaris BMD ke Excel"
           >
-            <Download className="w-4 h-4 text-slate-500" />
+            <Download className="w-4 h-4 text-[#6B7280]" />
             Ekspor Excel
           </button>
 
           <button
             type="button"
             onClick={() => setIsImportOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-emerald-800 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#0F766E] bg-[#CCFBF1] hover:bg-teal-100 border border-teal-300 rounded-xl shadow-2xs transition-colors cursor-pointer"
             title="Impor inventaris dari file Excel (.xlsx / .csv)"
           >
-            <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+            <FileSpreadsheet className="w-4 h-4 text-[#0F766E]" />
             Impor dari Excel
           </button>
 
@@ -112,7 +112,7 @@ export const BarangView: React.FC<BarangViewProps> = ({
               setEditingBarang(null);
               setIsModalOpen(true);
             }}
-            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-[#0F766E] hover:bg-[#0d6861] active:bg-[#115E59] rounded-xl shadow-xs transition-colors cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             Tambah BMD Baru

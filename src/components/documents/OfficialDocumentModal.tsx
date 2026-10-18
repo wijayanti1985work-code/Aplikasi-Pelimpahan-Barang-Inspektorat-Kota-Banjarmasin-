@@ -123,13 +123,13 @@ export const OfficialDocumentModal: React.FC<OfficialDocumentModalProps> = ({
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
       <div className="bg-white rounded-2xl shadow-2xl border border-slate-200 w-full max-w-5xl flex flex-col max-h-[95vh] overflow-hidden">
         {/* Top Control Bar (Hidden during print) */}
-        <div className="no-print px-6 py-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 border-b border-slate-800">
+        <div className="no-print px-6 py-4 bg-[#0F766E] text-white flex flex-wrap items-center justify-between gap-3 border-b border-[#0d6861]">
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold px-2 py-0.5 rounded bg-blue-600 text-white uppercase tracking-wider">
+              <span className="text-xs font-bold px-2 py-0.5 rounded bg-[#CCFBF1] text-[#0F766E] uppercase tracking-wider">
                 Generator Dokumen Resmi
               </span>
-              <span className="text-xs text-slate-400">Inspektorat Kota Banjarmasin</span>
+              <span className="text-xs text-teal-100">Inspektorat Kota Banjarmasin</span>
             </div>
             <h2 className="text-lg font-bold text-white mt-1">
               {activeTab === 'BAST' && 'Berita Acara Serah Terima (BAST) Penggunaan BMD'}
@@ -142,17 +142,17 @@ export const OfficialDocumentModal: React.FC<OfficialDocumentModalProps> = ({
             <button
               type="button"
               onClick={handlePrint}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-slate-800 bg-white hover:bg-slate-100 rounded-lg shadow-sm transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#0F766E] bg-white hover:bg-teal-50 rounded-lg shadow-sm transition-colors cursor-pointer"
               title="Cetak atau Simpan sebagai PDF"
             >
-              <Printer className="w-4 h-4 text-blue-700" />
+              <Printer className="w-4 h-4 text-[#0F766E]" />
               Cetak / PDF
             </button>
 
             <button
               type="button"
               onClick={handleExportWord}
-              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#0F766E] bg-[#CCFBF1] hover:bg-white rounded-lg shadow-sm transition-colors cursor-pointer"
               title="Unduh Format Microsoft Word (.doc)"
             >
               <FileDown className="w-4 h-4" />
@@ -162,7 +162,7 @@ export const OfficialDocumentModal: React.FC<OfficialDocumentModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors cursor-pointer ml-1"
+              className="p-2 text-teal-100 hover:text-white hover:bg-teal-800 rounded-lg transition-colors cursor-pointer ml-1"
               title="Tutup Modal"
             >
               <X className="w-5 h-5" />
@@ -171,15 +171,15 @@ export const OfficialDocumentModal: React.FC<OfficialDocumentModalProps> = ({
         </div>
 
         {/* Tab Navigation & Signature Bar (Hidden during print) */}
-        <div className="no-print px-6 py-2.5 bg-slate-100 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-slate-200 shadow-2xs">
+        <div className="no-print px-6 py-2.5 bg-[#F3F4F6] border-b border-[#E5E7EB] flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-1.5 bg-white p-1 rounded-xl border border-[#E5E7EB] shadow-2xs">
             <button
               type="button"
               onClick={() => setActiveTab('BAST')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
                 activeTab === 'BAST'
-                  ? 'bg-blue-700 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'bg-[#0F766E] text-white shadow-xs font-bold'
+                  : 'text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6]'
               }`}
             >
               <FileText className="w-4 h-4" />
@@ -188,10 +188,10 @@ export const OfficialDocumentModal: React.FC<OfficialDocumentModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('SK')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
                 activeTab === 'SK'
-                  ? 'bg-blue-700 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'bg-[#0F766E] text-white shadow-xs font-bold'
+                  : 'text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6]'
               }`}
             >
               <Award className="w-4 h-4" />
@@ -200,10 +200,10 @@ export const OfficialDocumentModal: React.FC<OfficialDocumentModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveTab('SPTJM')}
-              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium transition-colors ${
+              className={`flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg font-medium transition-colors cursor-pointer ${
                 activeTab === 'SPTJM'
-                  ? 'bg-blue-700 text-white shadow-xs'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  ? 'bg-[#0F766E] text-white shadow-xs font-bold'
+                  : 'text-[#6B7280] hover:text-[#111827] hover:bg-[#F3F4F6]'
               }`}
             >
               <ShieldAlert className="w-4 h-4" />
@@ -212,11 +212,11 @@ export const OfficialDocumentModal: React.FC<OfficialDocumentModalProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-slate-500 font-medium">Bubuhi Tanda Tangan:</span>
+            <span className="text-[#6B7280] font-medium">Bubuhi Tanda Tangan:</span>
             <button
               type="button"
               onClick={() => setSigningRole('pihakPertama')}
-              className="px-2.5 py-1 bg-white hover:bg-blue-50 text-blue-700 border border-blue-200 rounded-lg font-medium transition-colors cursor-pointer"
+              className="px-2.5 py-1 bg-white hover:bg-[#CCFBF1]/40 text-[#0F766E] border border-teal-200 rounded-lg font-medium transition-colors cursor-pointer"
             >
               Pengurus Barang
             </button>

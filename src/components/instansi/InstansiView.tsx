@@ -73,15 +73,15 @@ export const InstansiView: React.FC<InstansiViewProps> = ({
       <div className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+            <span className="text-[11px] font-bold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded border border-[#0F766E]/20">
               Master Profil Instansi & Tata Naskah
             </span>
-            <span className="text-xs text-slate-400">Pengaturan Kop Dokumen Resmi</span>
+            <span className="text-xs text-[#6B7280]">Pengaturan Kop Dokumen Resmi</span>
           </div>
-          <h2 className="text-lg font-bold text-slate-900 mt-1">
+          <h2 className="text-lg font-bold text-[#111827] mt-1">
             Setting Profil Instansi, Kop Surat & Logo
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#6B7280]">
             Kustomisasi nama instansi, alamat, logo daerah, dan format garis kop dinas yang tampil pada BAST, SK, dan SPTJM.
           </p>
         </div>
@@ -446,10 +446,10 @@ export const InstansiView: React.FC<InstansiViewProps> = ({
         </div>
 
         {/* Submit */}
-        <div className="pt-4 border-t border-slate-200 flex items-center justify-end gap-2.5">
+        <div className="pt-4 border-t border-[#E5E7EB] flex items-center justify-end gap-2.5">
           <button
             type="submit"
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 active:bg-blue-900 rounded-xl shadow-xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs font-semibold text-white bg-[#0F766E] hover:bg-[#0d6861] active:bg-[#115E59] rounded-xl shadow-xs transition-colors cursor-pointer"
           >
             <Check className="w-4 h-4" />
             Simpan Pengaturan Instansi

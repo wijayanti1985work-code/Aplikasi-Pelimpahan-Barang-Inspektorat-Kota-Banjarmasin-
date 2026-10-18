@@ -49,9 +49,9 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
       case 'primary':
       default:
         return {
-          icon: <HelpCircle className="w-5 h-5 text-blue-600" />,
-          iconBg: 'bg-blue-100',
-          confirmBtn: 'bg-blue-600 hover:bg-blue-700 text-white',
+          icon: <HelpCircle className="w-5 h-5 text-[#0F766E]" />,
+          iconBg: 'bg-[#CCFBF1]',
+          confirmBtn: 'bg-[#0F766E] hover:bg-[#0d6861] text-white',
         };
     }
   };
@@ -59,18 +59,18 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   const styles = getVariantStyles();
 
   return (
-    <div className="fixed inset-0 z-70 bg-slate-900/60 backdrop-blur-2xs flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-slate-200 overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+    <div className="fixed inset-0 z-70 bg-black/50 backdrop-blur-2xs flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl max-w-md w-full shadow-2xl border border-[#E5E7EB] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
         <div className="p-5 sm:p-6 space-y-4">
           <div className="flex items-start gap-3.5">
             <div className={`w-10 h-10 rounded-xl ${styles.iconBg} flex items-center justify-center shrink-0`}>
               {styles.icon}
             </div>
             <div className="flex-1">
-              <h3 className="text-base font-bold text-slate-900 leading-snug">{title}</h3>
-              <p className="text-xs text-slate-600 mt-1 leading-relaxed">{message}</p>
+              <h3 className="text-base font-bold text-[#111827] leading-snug">{title}</h3>
+              <p className="text-xs text-[#6B7280] mt-1 leading-relaxed">{message}</p>
               {subMessage && (
-                <p className="text-[11px] text-slate-400 mt-2 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                <p className="text-[11px] text-[#6B7280] mt-2 bg-[#F3F4F6] p-2 rounded-lg border border-[#E5E7EB]">
                   {subMessage}
                 </p>
               )}

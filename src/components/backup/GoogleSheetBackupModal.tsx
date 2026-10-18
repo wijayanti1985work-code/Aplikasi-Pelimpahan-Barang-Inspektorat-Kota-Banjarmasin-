@@ -261,26 +261,26 @@ export const GoogleSheetBackupModal: React.FC<GoogleSheetBackupModalProps> = ({
           </div>
 
           {/* Backup Summary Box */}
-          <div className="p-4 bg-emerald-50/60 rounded-xl border border-emerald-200 space-y-2">
-            <h4 className="text-xs font-bold text-emerald-950 uppercase tracking-wider flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4 text-emerald-700" />
+          <div className="p-4 bg-[#CCFBF1]/30 rounded-xl border border-teal-200 space-y-2">
+            <h4 className="text-xs font-bold text-[#0F766E] uppercase tracking-wider flex items-center gap-1.5">
+              <ShieldCheck className="w-4 h-4 text-[#0F766E]" />
               Rincian Data Yang Akan Dicadangkan:
             </h4>
             <div className="grid grid-cols-3 gap-2 text-xs">
-              <div className="bg-white p-2.5 rounded-lg border border-emerald-100 text-center">
-                <span className="text-[11px] text-slate-500 block">Pegawai</span>
-                <span className="text-base font-bold text-slate-900">{pegawaiList.length}</span>
+              <div className="bg-white p-2.5 rounded-lg border border-[#E5E7EB] text-center">
+                <span className="text-[11px] text-[#6B7280] block">Pegawai</span>
+                <span className="text-base font-extrabold text-[#111827]">{pegawaiList.length}</span>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-emerald-100 text-center">
-                <span className="text-[11px] text-slate-500 block">Inventaris BMD</span>
-                <span className="text-base font-bold text-slate-900">{barangList.length}</span>
+              <div className="bg-white p-2.5 rounded-lg border border-[#E5E7EB] text-center">
+                <span className="text-[11px] text-[#6B7280] block">Inventaris BMD</span>
+                <span className="text-base font-extrabold text-[#111827]">{barangList.length}</span>
               </div>
-              <div className="bg-white p-2.5 rounded-lg border border-emerald-100 text-center">
-                <span className="text-[11px] text-slate-500 block">Pelimpahan (BAST)</span>
-                <span className="text-base font-bold text-slate-900">{pelimpahanList.length}</span>
+              <div className="bg-white p-2.5 rounded-lg border border-[#E5E7EB] text-center">
+                <span className="text-[11px] text-[#6B7280] block">Pelimpahan (BAST)</span>
+                <span className="text-base font-extrabold text-[#111827]">{pelimpahanList.length}</span>
               </div>
             </div>
-            <p className="text-[11px] text-emerald-800 pt-1">
+            <p className="text-[11px] text-[#0F766E] pt-1">
               File akan dibuat dengan 4 sheet terstruktur: <b>Ringkasan & Profil</b>, <b>Data Pegawai</b>, <b>Inventaris BMD</b>, dan <b>Data Pelimpahan</b>.
             </p>
           </div>
@@ -291,7 +291,7 @@ export const GoogleSheetBackupModal: React.FC<GoogleSheetBackupModalProps> = ({
               type="button"
               onClick={() => setShowBackupConfirm(true)}
               disabled={!currentUser || isBackingUp}
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:pointer-events-none text-white rounded-xl text-xs font-semibold shadow-sm transition-all cursor-pointer"
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 bg-[#0F766E] hover:bg-[#0d6861] active:bg-[#115E59] disabled:opacity-50 disabled:pointer-events-none text-white rounded-xl text-xs font-bold shadow-sm transition-all cursor-pointer"
             >
               {isBackingUp ? (
                 <>

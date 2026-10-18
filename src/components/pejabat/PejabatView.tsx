@@ -32,15 +32,15 @@ export const PejabatView: React.FC<PejabatViewProps> = ({
       <div className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-[11px] font-semibold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+            <span className="text-[11px] font-bold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded border border-[#0F766E]/20">
               Master Pejabat Berwenang
             </span>
-            <span className="text-xs text-slate-400">Inspektorat Kota Banjarmasin</span>
+            <span className="text-xs text-[#6B7280]">Inspektorat Kota Banjarmasin</span>
           </div>
-          <h2 className="text-lg font-bold text-slate-900 mt-1">
+          <h2 className="text-lg font-bold text-[#111827] mt-1">
             Data Pejabat Pengguna & Pengurus Barang
           </h2>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-[#6B7280]">
             Kelola data penandatangan resmi BAST, Keputusan Inspektur (SK), dan pengesahan SPTJM.
           </p>
         </div>
@@ -55,20 +55,20 @@ export const PejabatView: React.FC<PejabatViewProps> = ({
           return (
             <div
               key={pej.id}
-              className="bg-white rounded-2xl shadow-xs border border-slate-200 overflow-hidden flex flex-col justify-between"
+              className="bg-white rounded-2xl shadow-xs border border-[#E5E7EB] overflow-hidden flex flex-col justify-between"
             >
               {/* Card Header */}
               <div
                 className={`p-4 border-b flex items-center justify-between ${
                   isPengguna
-                    ? 'bg-gradient-to-r from-blue-900 to-indigo-950 text-white border-blue-800'
-                    : 'bg-gradient-to-r from-slate-800 to-slate-900 text-white border-slate-700'
+                    ? 'bg-gradient-to-r from-[#0F766E] to-[#115E59] text-white border-teal-700'
+                    : 'bg-gradient-to-r from-teal-800 to-teal-950 text-white border-teal-850'
                 }`}
               >
                 <div className="flex items-center gap-2.5">
                   <div
                     className={`w-9 h-9 rounded-xl flex items-center justify-center ${
-                      isPengguna ? 'bg-amber-400 text-blue-950' : 'bg-emerald-400 text-slate-950'
+                      isPengguna ? 'bg-[#CCFBF1] text-[#0F766E]' : 'bg-teal-700 text-[#CCFBF1]'
                     }`}
                   >
                     <UserCog className="w-5 h-5" />
@@ -76,7 +76,7 @@ export const PejabatView: React.FC<PejabatViewProps> = ({
                   <div>
                     <span
                       className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
-                        isPengguna ? 'bg-blue-800 text-amber-300' : 'bg-slate-700 text-emerald-300'
+                        isPengguna ? 'bg-teal-900 text-[#CCFBF1]' : 'bg-teal-900 text-teal-200'
                       }`}
                     >
                       {pej.peran}
@@ -161,7 +161,7 @@ export const PejabatView: React.FC<PejabatViewProps> = ({
                       <button
                         type="button"
                         onClick={handleSave}
-                        className="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-semibold text-white bg-blue-700 hover:bg-blue-800 rounded-lg shadow-sm"
+                        className="inline-flex items-center gap-1 px-3.5 py-1.5 text-xs font-semibold text-white bg-[#0F766E] hover:bg-[#0d6861] active:bg-[#115E59] rounded-lg shadow-sm cursor-pointer"
                       >
                         <Check className="w-3.5 h-3.5" />
                         Simpan Perubahan

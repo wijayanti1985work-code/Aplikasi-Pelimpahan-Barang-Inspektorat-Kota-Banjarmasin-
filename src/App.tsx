@@ -14,6 +14,7 @@ import { RegulasiView } from './components/regulasi/RegulasiView.tsx';
 import { OfficialDocumentModal } from './components/documents/OfficialDocumentModal.tsx';
 import { GoogleSheetBackupModal } from './components/backup/GoogleSheetBackupModal.tsx';
 import { ConfirmModal } from './components/common/ConfirmModal.tsx';
+import type { CloudSyncState } from './services/firestore.ts';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<NavTab>('dashboard');
@@ -25,6 +26,12 @@ export default function App() {
   const [barangList, setBarangList] = useState<BarangBMD[]>([]);
   const [pelimpahanList, setPelimpahanList] = useState<PelimpahanBMD[]>([]);
   const [instansi, setInstansi] = useState<InstansiConfig>(StorageService.getInstansi());
+
+  // Cloud Database Sync state
+  const [cloudSyncState, setCloudSyncState] = useState<CloudSyncState>({
+    status: 'connecting',
+    message: 'Menghubungkan ke Cloud Database...',
+  });
 
   // Modals state
   const [isCreatePelimpahanOpen, setIsCreatePelimpahanOpen] = useState(false);
@@ -39,13 +46,39 @@ export default function App() {
   // Global search query
   const [globalSearch, setGlobalSearch] = useState('');
 
+  // Synchronize with Cloud Firestore & local storage
+  const syncCloud = () => {
+    setCloudSyncState({ status: 'connecting', message: 'Menghubungkan ke Cloud Database...' });
+    StorageService.syncWithCloud(cloudData => {
+      setInstansi(cloudData.instansi);
+      setPejabatList(cloudData.pejabat);
+      setPegawaiList(cloudData.pegawai);
+      setBarangList(cloudData.barang);
+      setPelimpahanList(cloudData.pelimpahan);
+    })
+      .then(res => {
+        setCloudSyncState(res);
+      })
+      .catch(err => {
+        console.warn('Initial cloud sync error:', err);
+        setCloudSyncState({
+          status: 'offline',
+          message: 'Mode offline (Penyimpanan lokal aktif)',
+        });
+      });
+  };
+
   // Initial load
   useEffect(() => {
+    // 1. Instant local load
     setPejabatList(StorageService.getPejabat());
     setPegawaiList(StorageService.getPegawai());
     setBarangList(StorageService.getBarang());
     setPelimpahanList(StorageService.getPelimpahan());
     setInstansi(StorageService.getInstansi());
+
+    // 2. Cloud Firestore sync
+    syncCloud();
   }, []);
 
   // Handlers for Instansi
@@ -156,7 +189,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col font-sans text-slate-800">
+    <div className="min-h-screen bg-[#F3F4F6] flex flex-col font-sans text-[#111827]">
       {/* Top Header */}
       <Header
         activeTab={activeTab}
@@ -168,6 +201,8 @@ export default function App() {
         onGlobalSearchChange={handleGlobalSearchChange}
         isMobileMenuOpen={isMobileMenuOpen}
         onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
+        cloudSyncState={cloudSyncState}
+        onRefreshCloudSync={syncCloud}
       />
 
       {/* Toast Notification */}

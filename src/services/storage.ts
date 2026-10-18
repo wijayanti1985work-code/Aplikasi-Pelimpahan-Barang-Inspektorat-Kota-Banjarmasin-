@@ -1,4 +1,5 @@
 import type { BarangBMD, Pegawai, Pejabat, PelimpahanBMD, InstansiConfig, GoogleSheetBackupRecord } from '../types/index.ts';
+import { FirestoreService, type CloudSyncState } from './firestore.ts';
 
 const STORAGE_KEYS = {
   PEGAWAI: 'sip_bmd_pegawai_v1',
@@ -357,6 +358,7 @@ export const StorageService = {
   },
   savePejabat(data: Pejabat[]) {
     localStorage.setItem(STORAGE_KEYS.PEJABAT, JSON.stringify(data));
+    FirestoreService.savePejabat(data).catch(err => console.warn('Sync savePejabat:', err));
   },
   updatePejabat(pejabat: Pejabat) {
     const current = this.getPejabat();
@@ -379,6 +381,7 @@ export const StorageService = {
   },
   savePegawai(data: Pegawai[]) {
     localStorage.setItem(STORAGE_KEYS.PEGAWAI, JSON.stringify(data));
+    FirestoreService.savePegawai(data).catch(err => console.warn('Sync savePegawai:', err));
   },
   addPegawai(pegawai: Pegawai) {
     const current = this.getPegawai();
@@ -409,6 +412,7 @@ export const StorageService = {
   },
   saveBarang(data: BarangBMD[]) {
     localStorage.setItem(STORAGE_KEYS.BARANG, JSON.stringify(data));
+    FirestoreService.saveBarang(data).catch(err => console.warn('Sync saveBarang:', err));
   },
   addBarang(barang: BarangBMD) {
     const current = this.getBarang();
@@ -439,6 +443,7 @@ export const StorageService = {
   },
   savePelimpahan(data: PelimpahanBMD[]) {
     localStorage.setItem(STORAGE_KEYS.PELIMPAHAN, JSON.stringify(data));
+    FirestoreService.savePelimpahan(data).catch(err => console.warn('Sync savePelimpahan:', err));
   },
   addPelimpahan(pelimpahan: PelimpahanBMD) {
     const current = this.getPelimpahan();
@@ -501,6 +506,7 @@ export const StorageService = {
   },
   saveInstansi(config: InstansiConfig) {
     localStorage.setItem(STORAGE_KEYS.INSTANSI, JSON.stringify(config));
+    FirestoreService.saveInstansi(config).catch(err => console.warn('Sync saveInstansi:', err));
   },
 
   // Google Sheet Backups History
@@ -515,6 +521,7 @@ export const StorageService = {
   },
   saveGoogleSheetBackups(records: GoogleSheetBackupRecord[]) {
     localStorage.setItem(STORAGE_KEYS.GSHEET_BACKUPS, JSON.stringify(records));
+    FirestoreService.saveGoogleSheetBackups(records).catch(err => console.warn('Sync saveBackups:', err));
   },
   addGoogleSheetBackup(record: GoogleSheetBackupRecord) {
     const current = this.getGoogleSheetBackups();
@@ -523,6 +530,101 @@ export const StorageService = {
   deleteGoogleSheetBackup(id: string) {
     const current = this.getGoogleSheetBackups();
     this.saveGoogleSheetBackups(current.filter(r => r.id !== id));
+    FirestoreService.deleteGoogleSheetBackup(id).catch(err => console.warn('Sync deleteBackup:', err));
+  },
+
+  // Cloud Database Synchronization
+  async syncWithCloud(onDataLoaded?: (data: {
+    instansi: InstansiConfig;
+    pejabat: Pejabat[];
+    pegawai: Pegawai[];
+    barang: BarangBMD[];
+    pelimpahan: PelimpahanBMD[];
+    gsheetBackups: GoogleSheetBackupRecord[];
+  }) => void): Promise<CloudSyncState> {
+    try {
+      // 1. Check if Firestore is empty on the cloud
+      const isEmpty = await FirestoreService.isCloudDatabaseEmpty();
+      if (isEmpty) {
+        // First initialization: seed cloud Firestore with current/seed data
+        const currentData = {
+          instansi: this.getInstansi(),
+          pejabat: this.getPejabat(),
+          pegawai: this.getPegawai(),
+          barang: this.getBarang(),
+          pelimpahan: this.getPelimpahan(),
+        };
+        await FirestoreService.seedInitialCloudData(currentData);
+        return {
+          status: 'synced',
+          message: 'Database Cloud Firestore berhasil diinisialisasi & tersimpan permanen',
+          lastSyncedAt: new Date(),
+        };
+      }
+
+      // 2. Cloud has existing data - fetch all data from Firestore
+      const cloudData = await FirestoreService.loadAllCloudData();
+      if (cloudData) {
+        const mergedInstansi = cloudData.instansi || this.getInstansi();
+        const mergedPejabat = cloudData.pejabat.length > 0 ? cloudData.pejabat : this.getPejabat();
+        const mergedPegawai = cloudData.pegawai.length > 0 ? cloudData.pegawai : this.getPegawai();
+        const mergedBarang = cloudData.barang.length > 0 ? cloudData.barang : this.getBarang();
+        const mergedPelimpahan = cloudData.pelimpahan.length > 0 ? cloudData.pelimpahan : this.getPelimpahan();
+        const mergedBackups = cloudData.gsheetBackups;
+
+        // Persist to local storage as offline cache
+        localStorage.setItem(STORAGE_KEYS.INSTANSI, JSON.stringify(mergedInstansi));
+        localStorage.setItem(STORAGE_KEYS.PEJABAT, JSON.stringify(mergedPejabat));
+        localStorage.setItem(STORAGE_KEYS.PEGAWAI, JSON.stringify(mergedPegawai));
+        localStorage.setItem(STORAGE_KEYS.BARANG, JSON.stringify(mergedBarang));
+        localStorage.setItem(STORAGE_KEYS.PELIMPAHAN, JSON.stringify(mergedPelimpahan));
+        localStorage.setItem(STORAGE_KEYS.GSHEET_BACKUPS, JSON.stringify(mergedBackups));
+
+        if (onDataLoaded) {
+          onDataLoaded({
+            instansi: mergedInstansi,
+            pejabat: mergedPejabat,
+            pegawai: mergedPegawai,
+            barang: mergedBarang,
+            pelimpahan: mergedPelimpahan,
+            gsheetBackups: mergedBackups,
+          });
+        }
+
+        return {
+          status: 'connected',
+          message: 'Tersinkronisasi Realtime dengan Cloud Firestore',
+          lastSyncedAt: new Date(),
+        };
+      }
+      return {
+        status: 'offline',
+        message: 'Menggunakan penyimpanan lokal offline',
+        lastSyncedAt: new Date(),
+      };
+    } catch (err) {
+      console.error('syncWithCloud error:', err);
+      return {
+        status: 'error',
+        message: 'Gagal menghubungkan ke Cloud Firestore (Offline Fallback)',
+      };
+    }
+  },
+
+  async forcePushToCloud(): Promise<void> {
+    const instansi = this.getInstansi();
+    const pejabat = this.getPejabat();
+    const pegawai = this.getPegawai();
+    const barang = this.getBarang();
+    const pelimpahan = this.getPelimpahan();
+    const backups = this.getGoogleSheetBackups();
+
+    await FirestoreService.saveInstansi(instansi);
+    await FirestoreService.savePejabat(pejabat);
+    await FirestoreService.savePegawai(pegawai);
+    await FirestoreService.saveBarang(barang);
+    await FirestoreService.savePelimpahan(pelimpahan);
+    await FirestoreService.saveGoogleSheetBackups(backups);
   },
 
   // Reset database back to default seed
@@ -532,6 +634,15 @@ export const StorageService = {
     localStorage.setItem(STORAGE_KEYS.BARANG, JSON.stringify(SEED_BARANG));
     localStorage.setItem(STORAGE_KEYS.PELIMPAHAN, JSON.stringify(SEED_PELIMPAHAN));
     localStorage.setItem(STORAGE_KEYS.INSTANSI, JSON.stringify(DEFAULT_INSTANSI));
+
+    // Reset cloud Firestore as well
+    FirestoreService.resetCloudDefaults({
+      instansi: DEFAULT_INSTANSI,
+      pejabat: SEED_PEJABAT,
+      pegawai: SEED_PEGAWAI,
+      barang: SEED_BARANG,
+      pelimpahan: SEED_PELIMPAHAN,
+    }).catch(err => console.warn('Cloud reset error:', err));
   },
 
   // Export full backup
@@ -562,3 +673,4 @@ export const StorageService = {
     }
   }
 };
+
