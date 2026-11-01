@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import type { Pejabat, InstansiConfig } from '../../types/index.ts';
 import type { CloudSyncState } from '../../services/firestore.ts';
+import { LOGO_PEMKOT_BANJARMASIN_BASE64 } from '../../assets/logoPemko.ts';
 
 interface HeaderProps {
   activeTab: string;
@@ -64,11 +65,11 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <div className="w-10 h-10 rounded-xl bg-white/10 backdrop-blur-xs flex items-center justify-center shadow-xs border border-teal-500/30 text-amber-300 overflow-hidden shrink-0">
-            {instansi.logoUtamaUrl ? (
-              <img src={instansi.logoUtamaUrl} alt="Logo" className="w-full h-full object-contain p-0.5" />
-            ) : (
-              <Building2 className="w-5 h-5 text-amber-300" />
-            )}
+            <img
+              src={instansi.logoUtamaUrl || LOGO_PEMKOT_BANJARMASIN_BASE64}
+              alt="Logo Pemerintah Kota Banjarmasin"
+              className="w-full h-full object-contain p-0.5"
+            />
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">

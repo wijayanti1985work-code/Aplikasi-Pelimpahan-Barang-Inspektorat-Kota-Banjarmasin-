@@ -7,21 +7,28 @@ import {
   Search,
   Edit2,
   Trash2,
-  User,
-  Filter,
-  Layers,
   MapPin,
-  Calendar,
+  CheckCircle,
+  Clock,
+  Layers,
+  Banknote,
+  FileText,
 } from 'lucide-react';
-import type { BarangBMD, Pegawai } from '../../types/index.ts';
+import type { BarangBMD, InstansiConfig, Pegawai, Pejabat, Ruangan } from '../../types/index.ts';
 import { filterBarang, formatRupiah, labelKondisi } from '../../utils/logic.ts';
-import { exportBarangToExcel } from '../../utils/excelService.ts';
+import { exportBarangToExcel, exportRekapitulasiBMDToExcel } from '../../utils/excelService.ts';
+import { DEFAULT_INSTANSI } from '../../services/storage.ts';
 import { BarangModal } from './BarangModal.tsx';
 import { ImportBarangModal } from './ImportBarangModal.tsx';
+import { LaporanRekapitulasiModal } from '../documents/LaporanRekapitulasiModal.tsx';
+import { ConfirmModal } from '../common/ConfirmModal.tsx';
 
 interface BarangViewProps {
   barangList: BarangBMD[];
   pegawaiList: Pegawai[];
+  pejabatList?: Pejabat[];
+  instansi?: InstansiConfig;
+  ruanganList?: Ruangan[];
   onAddBarang: (b: BarangBMD) => void;
   onUpdateBarang: (b: BarangBMD) => void;
   onDeleteBarang: (id: string) => void;
@@ -31,6 +38,9 @@ interface BarangViewProps {
 export const BarangView: React.FC<BarangViewProps> = ({
   barangList,
   pegawaiList,
+  pejabatList = [],
+  instansi = DEFAULT_INSTANSI,
+  ruanganList = [],
   onAddBarang,
   onUpdateBarang,
   onDeleteBarang,
@@ -43,9 +53,17 @@ export const BarangView: React.FC<BarangViewProps> = ({
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isLaporanModalOpen, setIsLaporanModalOpen] = useState(false);
   const [editingBarang, setEditingBarang] = useState<BarangBMD | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; namaBarang: string; isDipakai: boolean; pemakaiNama?: string } | null>(null);
 
-  const uniqueRooms = ['Semua', ...new Set(barangList.map(b => b.kodeLokasiRuang))];
+  const uniqueRooms = [
+    'Semua',
+    ...new Set([
+      ...ruanganList.map(r => `[${r.kodeRuang}] ${r.namaRuang}`),
+      ...barangList.map(b => b.kodeLokasiRuang),
+    ].filter(Boolean)),
+  ];
 
   const filtered = filterBarang(barangList, searchQuery, filterRuang, filterKondisi, filterStatus);
 
@@ -69,7 +87,7 @@ export const BarangView: React.FC<BarangViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-white p-5 rounded-2xl shadow-xs border border-slate-200/80 flex flex-wrap items-center justify-between gap-4">
+      <div className="bg-white p-5 rounded-2xl shadow-xs border border-[#E5E7EB] flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="text-[11px] font-bold text-[#0F766E] bg-[#CCFBF1] px-2 py-0.5 rounded border border-[#0F766E]/20">
@@ -88,6 +106,16 @@ export const BarangView: React.FC<BarangViewProps> = ({
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
+            onClick={() => setIsLaporanModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#0F766E] bg-[#CCFBF1] hover:bg-teal-100 border border-[#0F766E]/30 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            title="Buka laporan rekapitulasi inventaris lengkap siap cetak PDF atau ekspor Excel"
+          >
+            <FileText className="w-4 h-4 text-[#0F766E]" />
+            Laporan Rekapitulasi (PDF/Excel)
+          </button>
+
+          <button
+            type="button"
             onClick={() => exportBarangToExcel(barangList)}
             className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#111827] bg-white hover:bg-[#F3F4F6] border border-[#E5E7EB] rounded-xl shadow-2xs transition-colors cursor-pointer"
             title="Ekspor seluruh daftar inventaris BMD ke Excel"
@@ -99,10 +127,10 @@ export const BarangView: React.FC<BarangViewProps> = ({
           <button
             type="button"
             onClick={() => setIsImportOpen(true)}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#0F766E] bg-[#CCFBF1] hover:bg-teal-100 border border-teal-300 rounded-xl shadow-2xs transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-semibold text-[#111827] bg-white hover:bg-[#F3F4F6] border border-[#E5E7EB] rounded-xl shadow-2xs transition-colors cursor-pointer"
             title="Impor inventaris dari file Excel (.xlsx / .csv)"
           >
-            <FileSpreadsheet className="w-4 h-4 text-[#0F766E]" />
+            <FileSpreadsheet className="w-4 h-4 text-[#6B7280]" />
             Impor dari Excel
           </button>
 
@@ -121,16 +149,16 @@ export const BarangView: React.FC<BarangViewProps> = ({
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-xl shadow-xs border border-slate-200 flex flex-wrap items-center justify-between gap-3">
+      <div className="bg-white p-4 rounded-xl shadow-xs border border-[#E5E7EB] flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
           <div className="relative flex-1 min-w-[200px]">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-[#6B7280] absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               placeholder="Cari kode barang, NIB, nama, merk, no seri..."
-              className="w-full pl-9 pr-4 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-lg text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+              className="w-full pl-9 pr-4 py-1.5 text-xs bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg text-[#111827] placeholder:text-[#6B7280] focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20"
             />
           </div>
 
@@ -138,7 +166,7 @@ export const BarangView: React.FC<BarangViewProps> = ({
             <select
               value={filterRuang}
               onChange={e => setFilterRuang(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-700"
+              className="w-full px-2.5 py-1.5 text-xs bg-white border border-[#E5E7EB] rounded-lg text-[#111827]"
             >
               {uniqueRooms.map(r => (
                 <option key={r} value={r}>
@@ -152,7 +180,7 @@ export const BarangView: React.FC<BarangViewProps> = ({
             <select
               value={filterKondisi}
               onChange={e => setFilterKondisi(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-700"
+              className="w-full px-2.5 py-1.5 text-xs bg-white border border-[#E5E7EB] rounded-lg text-[#111827]"
             >
               <option value="Semua">Semua Kondisi</option>
               <option value="B">Baik (B)</option>
@@ -165,7 +193,7 @@ export const BarangView: React.FC<BarangViewProps> = ({
             <select
               value={filterStatus}
               onChange={e => setFilterStatus(e.target.value)}
-              className="w-full px-2.5 py-1.5 text-xs bg-white border border-slate-300 rounded-lg text-slate-700"
+              className="w-full px-2.5 py-1.5 text-xs bg-white border border-[#E5E7EB] rounded-lg text-[#111827]"
             >
               <option value="Semua">Semua Status</option>
               <option value="Tersedia">Tersedia</option>
@@ -174,16 +202,18 @@ export const BarangView: React.FC<BarangViewProps> = ({
           </div>
         </div>
 
-        <div className="text-xs text-slate-500">
-          Total: <span className="font-bold text-slate-800">{filtered.length}</span> Barang ({formatRupiah(totalNilaiFiltered)})
+        <div className="text-xs text-[#6B7280] flex items-center gap-1.5 font-mono">
+          <span>Total: <strong className="text-[#111827]">{filtered.length}</strong> Barang</span>
+          <span>·</span>
+          <span className="font-semibold text-[#0F766E]">{formatRupiah(totalNilaiFiltered)}</span>
         </div>
       </div>
 
       {/* BMD Table */}
-      <div className="bg-white rounded-2xl shadow-xs border border-slate-200/90 overflow-hidden">
+      <div className="bg-white rounded-2xl shadow-xs border border-[#E5E7EB] overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-slate-50 border-b border-slate-200 text-slate-600 font-semibold uppercase tracking-wider text-[11px]">
+            <thead className="bg-[#F3F4F6] border-b border-[#E5E7EB] text-[#6B7280] font-semibold uppercase tracking-wider text-[11px]">
               <tr>
                 <th className="py-3 px-4 w-12 text-center">No</th>
                 <th className="py-3 px-4">Barang & Spesifikasi</th>
@@ -195,10 +225,10 @@ export const BarangView: React.FC<BarangViewProps> = ({
                 <th className="py-3 px-4 text-center w-28">Aksi</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-[#E5E7EB]">
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-slate-400">
+                  <td colSpan={8} className="py-12 text-center text-[#6B7280]">
                     Tidak ditemukan inventaris barang yang sesuai filter.
                   </td>
                 </tr>
@@ -210,32 +240,32 @@ export const BarangView: React.FC<BarangViewProps> = ({
                     : null;
 
                   return (
-                    <tr key={bmd.id} className="hover:bg-slate-50/70 transition-colors">
-                      <td className="py-3 px-4 text-center text-slate-400">{idx + 1}</td>
+                    <tr key={bmd.id} className="hover:bg-[#F3F4F6]/60 transition-colors">
+                      <td className="py-3 px-4 text-center text-[#6B7280]">{idx + 1}</td>
                       <td className="py-3 px-4">
                         <div className="flex items-center gap-3">
                           <img
                             src={bmd.fotoBarang}
                             alt={bmd.namaBarang}
-                            className="w-12 h-10 rounded-lg object-cover border border-slate-200 shrink-0"
+                            className="w-12 h-10 rounded-lg object-cover border border-[#E5E7EB] shrink-0"
                           />
                           <div>
-                            <p className="font-bold text-slate-900 text-sm leading-tight">{bmd.namaBarang}</p>
-                            <p className="text-[11px] text-slate-500 mt-0.5">{bmd.merkTipe}</p>
+                            <p className="font-bold text-[#111827] text-sm leading-tight">{bmd.namaBarang}</p>
+                            <p className="text-[11px] text-[#6B7280] mt-0.5">{bmd.merkTipe}</p>
                             {bmd.keterangan && (
-                              <p className="text-[10px] text-slate-400 italic">{bmd.keterangan}</p>
+                              <p className="text-[10px] text-[#6B7280] italic">{bmd.keterangan}</p>
                             )}
                           </div>
                         </div>
                       </td>
                       <td className="py-3 px-4 font-mono text-[11px]">
-                        <p className="font-semibold text-slate-800">{bmd.kodeBarang}</p>
-                        <p className="text-slate-500">{bmd.noSeri}</p>
+                        <p className="font-semibold text-[#111827]">{bmd.kodeBarang}</p>
+                        <p className="text-[#6B7280]">{bmd.noSeri}</p>
                       </td>
                       <td className="py-3 px-4">
-                        <p className="font-medium text-slate-800">Tahun {bmd.tahunPerolehan}</p>
-                        <p className="text-[11px] text-slate-500 flex items-center gap-1 mt-0.5">
-                          <MapPin className="w-3 h-3 text-slate-400 shrink-0" />
+                        <p className="font-medium text-[#111827]">Tahun {bmd.tahunPerolehan}</p>
+                        <p className="text-[11px] text-[#6B7280] flex items-center gap-1 mt-0.5">
+                          <MapPin className="w-3 h-3 text-[#6B7280] shrink-0" />
                           {bmd.kodeLokasiRuang}
                         </p>
                       </td>
@@ -247,8 +277,8 @@ export const BarangView: React.FC<BarangViewProps> = ({
                         </span>
                       </td>
                       <td className="py-3 px-4 text-right">
-                        <span className="font-semibold text-slate-900">{formatRupiah(bmd.nilaiPerolehan)}</span>
-                        <p className="text-[10px] text-slate-400">{bmd.sumberDana}</p>
+                        <span className="font-bold text-[#111827] font-mono tabular-nums">{formatRupiah(bmd.nilaiPerolehan)}</span>
+                        <p className="text-[10px] text-[#6B7280]">{bmd.sumberDana}</p>
                       </td>
                       <td className="py-3 px-4">
                         {bmd.statusPemakaian === 'Dipakai' ? (
@@ -256,13 +286,13 @@ export const BarangView: React.FC<BarangViewProps> = ({
                             <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-blue-800 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
                               Dipakai
                             </span>
-                            <p className="font-medium text-slate-800 text-[11px]">
+                            <p className="font-medium text-[#111827] text-[11px]">
                               {pemakai ? pemakai.nama : 'Pegawai Terdaftar'}
                             </p>
-                            {pemakai && <p className="text-[10px] text-slate-500">{pemakai.jabatan}</p>}
+                            {pemakai && <p className="text-[10px] text-[#6B7280]">{pemakai.jabatan}</p>}
                           </div>
                         ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                          <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
                             Tersedia di Gudang
                           </span>
                         )}
@@ -272,7 +302,7 @@ export const BarangView: React.FC<BarangViewProps> = ({
                           <button
                             type="button"
                             onClick={() => handleEdit(bmd)}
-                            className="p-1.5 text-slate-500 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-[#6B7280] hover:text-[#0F766E] hover:bg-[#CCFBF1]/50 rounded-lg transition-colors cursor-pointer"
                             title="Edit Inventaris"
                           >
                             <Edit2 className="w-3.5 h-3.5" />
@@ -280,11 +310,14 @@ export const BarangView: React.FC<BarangViewProps> = ({
                           <button
                             type="button"
                             onClick={() => {
-                              if (confirm(`Hapus barang ${bmd.namaBarang} (${bmd.kodeBarang})?`)) {
-                                onDeleteBarang(bmd.id);
-                              }
+                              setDeleteTarget({
+                                id: bmd.id,
+                                namaBarang: bmd.namaBarang,
+                                isDipakai: bmd.statusPemakaian === 'Dipakai',
+                                pemakaiNama: pemakai?.nama,
+                              });
                             }}
-                            className="p-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-[#6B7280] hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
                             title="Hapus Inventaris"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -304,6 +337,7 @@ export const BarangView: React.FC<BarangViewProps> = ({
       {isModalOpen && (
         <BarangModal
           initialData={editingBarang || undefined}
+          ruanganList={ruanganList}
           onSave={handleSave}
           onClose={() => {
             setIsModalOpen(false);
@@ -320,6 +354,39 @@ export const BarangView: React.FC<BarangViewProps> = ({
             setIsImportOpen(false);
           }}
           onClose={() => setIsImportOpen(false)}
+        />
+      )}
+
+      {/* Laporan Rekapitulasi Inventaris BMD Modal (PDF & Excel) */}
+      {isLaporanModalOpen && (
+        <LaporanRekapitulasiModal
+          barangList={barangList}
+          pegawaiList={pegawaiList}
+          pejabatList={pejabatList}
+          instansi={instansi}
+          isOpen={isLaporanModalOpen}
+          onClose={() => setIsLaporanModalOpen(false)}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteTarget && (
+        <ConfirmModal
+          isOpen={!!deleteTarget}
+          title={deleteTarget.isDipakai ? 'Perhatian: Barang Sedang Dipakai' : 'Konfirmasi Hapus Inventaris BMD'}
+          message={
+            deleteTarget.isDipakai
+              ? `Barang "${deleteTarget.namaBarang}" saat ini sedang dalam status "Dipakai"${deleteTarget.pemakaiNama ? ` oleh ${deleteTarget.pemakaiNama}` : ''}. Apakah Anda tetap ingin menghapus aset ini dari daftar inventaris?`
+              : `Apakah Anda yakin ingin menghapus barang "${deleteTarget.namaBarang}" dari inventaris BMD? Data akan dihapus secara permanen.`
+          }
+          confirmLabel={deleteTarget.isDipakai ? 'Tetap Hapus' : 'Hapus Barang'}
+          cancelLabel="Batal"
+          variant={deleteTarget.isDipakai ? 'warning' : 'danger'}
+          onConfirm={() => {
+            onDeleteBarang(deleteTarget.id);
+            setDeleteTarget(null);
+          }}
+          onCancel={() => setDeleteTarget(null)}
         />
       )}
     </div>

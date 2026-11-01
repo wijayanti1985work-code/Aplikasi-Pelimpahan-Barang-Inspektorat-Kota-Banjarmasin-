@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import type { BarangBMD, InstansiConfig, Pegawai, Pejabat, PelimpahanBMD } from './types/index.ts';
+import type { BarangBMD, InstansiConfig, Pegawai, Pejabat, PelimpahanBMD, PelepasanAsetRecord, Ruangan, UnitKerja } from './types/index.ts';
 import { StorageService } from './services/storage.ts';
 import { Header } from './components/common/Header.tsx';
 import { Sidebar, NavTab } from './components/common/Sidebar.tsx';
@@ -8,6 +8,8 @@ import { PelimpahanView } from './components/pelimpahan/PelimpahanView.tsx';
 import { PelimpahanFormModal } from './components/pelimpahan/PelimpahanFormModal.tsx';
 import { PegawaiView } from './components/pegawai/PegawaiView.tsx';
 import { BarangView } from './components/barang/BarangView.tsx';
+import { RuanganView } from './components/ruangan/RuanganView.tsx';
+import { UnitKerjaView } from './components/unitKerja/UnitKerjaView.tsx';
 import { PejabatView } from './components/pejabat/PejabatView.tsx';
 import { InstansiView } from './components/instansi/InstansiView.tsx';
 import { RegulasiView } from './components/regulasi/RegulasiView.tsx';
@@ -25,6 +27,8 @@ export default function App() {
   const [pegawaiList, setPegawaiList] = useState<Pegawai[]>([]);
   const [barangList, setBarangList] = useState<BarangBMD[]>([]);
   const [pelimpahanList, setPelimpahanList] = useState<PelimpahanBMD[]>([]);
+  const [ruanganList, setRuanganList] = useState<Ruangan[]>([]);
+  const [unitKerjaList, setUnitKerjaList] = useState<UnitKerja[]>([]);
   const [instansi, setInstansi] = useState<InstansiConfig>(StorageService.getInstansi());
 
   // Cloud Database Sync state
@@ -55,6 +59,8 @@ export default function App() {
       setPegawaiList(cloudData.pegawai);
       setBarangList(cloudData.barang);
       setPelimpahanList(cloudData.pelimpahan);
+      if (cloudData.ruangan) setRuanganList(cloudData.ruangan);
+      if (cloudData.unitKerja) setUnitKerjaList(cloudData.unitKerja);
     })
       .then(res => {
         setCloudSyncState(res);
@@ -70,11 +76,13 @@ export default function App() {
 
   // Initial load
   useEffect(() => {
-    // 1. Instant local load
+    // 1. Instant local load (memuat data pegawai baru yang diinput pengguna)
     setPejabatList(StorageService.getPejabat());
     setPegawaiList(StorageService.getPegawai());
     setBarangList(StorageService.getBarang());
     setPelimpahanList(StorageService.getPelimpahan());
+    setRuanganList(StorageService.getRuangan());
+    setUnitKerjaList(StorageService.getUnitKerja());
     setInstansi(StorageService.getInstansi());
 
     // 2. Cloud Firestore sync
@@ -95,21 +103,45 @@ export default function App() {
 
   // Handlers for Pegawai
   const handleAddPegawai = (p: Pegawai) => {
-    StorageService.addPegawai(p);
-    setPegawaiList(StorageService.getPegawai());
+    const res = StorageService.addPegawai(p);
+    if (!res.success) {
+      setNotificationToast(res.message || 'Kapasitas maksimal 150 pegawai tercapai.');
+      setTimeout(() => setNotificationToast(null), 4000);
+      return;
+    }
+    const updated = StorageService.getPegawai();
+    setPegawaiList(updated);
+    setNotificationToast(`Pegawai ${p.nama} berhasil ditambahkan (${updated.length}/150).`);
+    setTimeout(() => setNotificationToast(null), 4000);
   };
   const handleUpdatePegawai = (p: Pegawai) => {
     StorageService.updatePegawai(p);
     setPegawaiList(StorageService.getPegawai());
+    setNotificationToast(`Data pegawai ${p.nama} berhasil diperbarui.`);
+    setTimeout(() => setNotificationToast(null), 4000);
   };
   const handleDeletePegawai = (id: string) => {
     StorageService.deletePegawai(id);
     setPegawaiList(StorageService.getPegawai());
+    setNotificationToast('Data pegawai berhasil dihapus.');
+    setTimeout(() => setNotificationToast(null), 4000);
   };
   const handleBulkAddPegawai = (list: Pegawai[]) => {
-    const current = StorageService.getPegawai();
-    StorageService.savePegawai([...list, ...current]);
+    const res = StorageService.addBulkPegawai(list);
     setPegawaiList(StorageService.getPegawai());
+    if (res.truncated) {
+      setNotificationToast(`Ditambahkan ${res.added} pegawai (dibatasi maksimal 150 orang).`);
+    } else {
+      setNotificationToast(`Berhasil mengimpor ${res.added} pegawai baru.`);
+    }
+    setTimeout(() => setNotificationToast(null), 4000);
+  };
+  const handleClearAllPegawai = () => {
+    const result = StorageService.clearAllPegawai();
+    setPegawaiList([]);
+    setBarangList(result.updatedBarang);
+    setNotificationToast('Semua data pegawai telah dikosongkan. Anda dapat menambahkan data pegawai baru.');
+    setTimeout(() => setNotificationToast(null), 4500);
   };
 
   // Handlers for Barang BMD
@@ -156,6 +188,70 @@ export default function App() {
     setPelimpahanList(StorageService.getPelimpahan());
   };
 
+  // Handlers for Ruangan
+  const handleAddRuangan = (r: Ruangan) => {
+    StorageService.addRuangan(r);
+    setRuanganList(StorageService.getRuangan());
+    setNotificationToast(`Ruangan "${r.kodeRuang} - ${r.namaRuang}" berhasil ditambahkan.`);
+    setTimeout(() => setNotificationToast(null), 4000);
+  };
+
+  const handleUpdateRuangan = (r: Ruangan) => {
+    StorageService.updateRuangan(r);
+    setRuanganList(StorageService.getRuangan());
+    setNotificationToast(`Data ruangan "${r.kodeRuang}" berhasil diperbarui.`);
+    setTimeout(() => setNotificationToast(null), 4000);
+  };
+
+  const handleDeleteRuangan = (id: string) => {
+    StorageService.deleteRuangan(id);
+    setRuanganList(StorageService.getRuangan());
+    setNotificationToast('Master ruangan berhasil dihapus.');
+    setTimeout(() => setNotificationToast(null), 4000);
+  };
+
+  // Handlers for Master Unit / Wilayah Kerja
+  const handleAddUnitKerja = (u: UnitKerja) => {
+    StorageService.addUnitKerja(u);
+    setUnitKerjaList(StorageService.getUnitKerja());
+    setNotificationToast(`Unit kerja "${u.namaUnit}" berhasil ditambahkan.`);
+    setTimeout(() => setNotificationToast(null), 4000);
+  };
+
+  const handleUpdateUnitKerja = (u: UnitKerja) => {
+    StorageService.updateUnitKerja(u);
+    setUnitKerjaList(StorageService.getUnitKerja());
+    setNotificationToast(`Unit kerja "${u.namaUnit}" berhasil diperbarui.`);
+    setTimeout(() => setNotificationToast(null), 4000);
+  };
+
+  const handleDeleteUnitKerja = (id: string) => {
+    StorageService.deleteUnitKerja(id);
+    setUnitKerjaList(StorageService.getUnitKerja());
+    setNotificationToast('Master unit kerja berhasil dihapus.');
+    setTimeout(() => setNotificationToast(null), 4000);
+  };
+
+  const handleSyncUnitsFromPegawai = (newUnits: UnitKerja[]) => {
+    newUnits.forEach(u => StorageService.addUnitKerja(u));
+    setUnitKerjaList(StorageService.getUnitKerja());
+    setNotificationToast(`${newUnits.length} Master Unit & Wilayah Kerja berhasil disinkronkan dari data pegawai.`);
+    setTimeout(() => setNotificationToast(null), 4500);
+  };
+
+  // Handler for Pelepasan Aset BMD (Pindah / Pensiun)
+  const handleExecutePelepasanAset = (record: PelepasanAsetRecord) => {
+    const result = StorageService.executePelepasanAset({
+      record,
+      allBarang: barangList,
+      allPegawai: pegawaiList,
+    });
+    setBarangList(result.updatedBarang);
+    setPegawaiList(result.updatedPegawai);
+    setNotificationToast(`Aset berhasil dilepaskan dari ${record.namaPegawaiAsal} (BAP: ${record.nomorBAP})`);
+    setTimeout(() => setNotificationToast(null), 5000);
+  };
+
   // Reset database back to default seed
   const handleOpenResetDialog = () => {
     setIsResetConfirmOpen(true);
@@ -168,6 +264,8 @@ export default function App() {
     setPegawaiList(StorageService.getPegawai());
     setBarangList(StorageService.getBarang());
     setPelimpahanList(StorageService.getPelimpahan());
+    setRuanganList(StorageService.getRuangan());
+    setUnitKerjaList(StorageService.getUnitKerja());
     setInstansi(StorageService.getInstansi());
     setNotificationToast('Database berhasil diatur ulang ke data standar resmi Inspektorat Kota Banjarmasin.');
     setTimeout(() => setNotificationToast(null), 4000);
@@ -178,6 +276,8 @@ export default function App() {
     barang: barangList.length,
     pelimpahan: pelimpahanList.length,
     barangDipakai: barangList.filter(b => b.statusPemakaian === 'Dipakai').length,
+    ruangan: ruanganList.length,
+    unitKerja: unitKerjaList.length,
   };
 
   // When global search changes and is submitted, navigate to best matched tab
@@ -281,10 +381,20 @@ export default function App() {
               pegawaiList={pegawaiList}
               barangList={barangList}
               pelimpahanList={pelimpahanList}
+              pejabatList={pejabatList}
+              instansi={instansi}
+              unitKerjaList={unitKerjaList}
               onAddPegawai={handleAddPegawai}
               onUpdatePegawai={handleUpdatePegawai}
               onDeletePegawai={handleDeletePegawai}
               onBulkAddPegawai={handleBulkAddPegawai}
+              onOpenCreatePelimpahanWithPegawai={() => {
+                setEditingPelimpahan(null);
+                setIsCreatePelimpahanOpen(true);
+              }}
+              onExecutePelepasanAset={handleExecutePelepasanAset}
+              onClearAllPegawai={handleClearAllPegawai}
+              onAddNewUnitKerja={handleAddUnitKerja}
             />
           )}
 
@@ -292,10 +402,37 @@ export default function App() {
             <BarangView
               barangList={barangList}
               pegawaiList={pegawaiList}
+              pejabatList={pejabatList}
+              instansi={instansi}
+              ruanganList={ruanganList}
               onAddBarang={handleAddBarang}
               onUpdateBarang={handleUpdateBarang}
               onDeleteBarang={handleDeleteBarang}
               onBulkAddBarang={handleBulkAddBarang}
+            />
+          )}
+
+          {activeTab === 'ruangan' && (
+            <RuanganView
+              ruanganList={ruanganList}
+              barangList={barangList}
+              instansi={instansi}
+              onAddRuangan={handleAddRuangan}
+              onUpdateRuangan={handleUpdateRuangan}
+              onDeleteRuangan={handleDeleteRuangan}
+            />
+          )}
+
+          {activeTab === 'unitKerja' && (
+            <UnitKerjaView
+              unitKerjaList={unitKerjaList}
+              pegawaiList={pegawaiList}
+              barangList={barangList}
+              instansi={instansi}
+              onAddUnitKerja={handleAddUnitKerja}
+              onUpdateUnitKerja={handleUpdateUnitKerja}
+              onDeleteUnitKerja={handleDeleteUnitKerja}
+              onSyncUnitsFromPegawai={handleSyncUnitsFromPegawai}
             />
           )}
 
@@ -323,6 +460,7 @@ export default function App() {
           initialData={editingPelimpahan || undefined}
           pegawaiList={pegawaiList}
           barangList={barangList}
+          ruanganList={ruanganList}
           existingPelimpahanCount={pelimpahanList.length}
           onSave={handleSavePelimpahan}
           onClose={() => {
@@ -352,6 +490,7 @@ export default function App() {
           barangList={barangList.filter(b => quickDocData.barangIds.includes(b.id))}
           pejabatList={pejabatList}
           instansi={instansi}
+          ruanganList={ruanganList}
           onClose={() => setQuickDocData(null)}
           onUpdatePelimpahan={updated => {
             handleUpdatePelimpahanDoc(updated);

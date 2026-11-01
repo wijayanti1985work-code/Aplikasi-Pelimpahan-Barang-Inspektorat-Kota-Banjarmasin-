@@ -14,26 +14,16 @@ export interface ImportResult<T> {
 export function downloadTemplatePegawai() {
   const templateData = [
     {
-      'Nama Lengkap': 'H. Akhmad Ridhani, S.Sos., M.A.P.',
-      'NIP': '197508142000031005',
-      'Pangkat / Golongan': 'Pembina Tingkat I / IV/b',
-      'Jabatan': 'Inspektur Pembantu Wilayah I',
-      'Unit Kerja': 'Inspektorat Pembantu Wilayah I',
-      'Status (Aktif/Non-Aktif)': 'Aktif',
-      'Masa Kerja Jabatan': '4 Tahun 2 Bulan',
-      'Email Dinas': 'ridhani.irban1@banjarmasinkota.go.id',
-      'No. Telepon / WhatsApp': '081251239901',
-    },
-    {
-      'Nama Lengkap': 'Siti Rahmah, S.E., Ak., CA',
-      'NIP': '198404172008012011',
+      'Nama Lengkap': 'Contoh: Nama Pegawai Lengkap & Gelar',
+      'NIP': '198501012010011001',
       'Pangkat / Golongan': 'Penata Tingkat I / III/d',
       'Jabatan': 'Auditor Ahli Muda',
-      'Unit Kerja': 'Inspektorat Pembantu Wilayah II',
+      'Unit Kerja': 'Inspektorat Pembantu Wilayah I',
+      'Wilayah Kerja': 'Kecamatan Banjarmasin Tengah & Perangkat Daerah Bidang Tata Pemerintahan',
       'Status (Aktif/Non-Aktif)': 'Aktif',
-      'Masa Kerja Jabatan': '3 Tahun 6 Bulan',
-      'Email Dinas': 'siti.rahmah@banjarmasinkota.go.id',
-      'No. Telepon / WhatsApp': '081348112233',
+      'Masa Kerja Jabatan': '3 Tahun 0 Bulan',
+      'Email Dinas': 'pegawai@banjarmasinkota.go.id',
+      'No. Telepon / WhatsApp': '081234567890',
     },
   ];
 
@@ -110,6 +100,7 @@ export function validateAndMapPegawai(rows: Record<string, unknown>[]): ImportRe
     const pangkatGol = (row['Pangkat / Golongan'] || row['Pangkat'] || row['Golongan'] || row['pangkatGol'] || '-') as string;
     const jabatan = (row['Jabatan'] || row['jabatan'] || '-') as string;
     const unitKerja = (row['Unit Kerja'] || row['unitKerja'] || 'Sekretariat') as string;
+    const wilayahKerja = (row['Wilayah Kerja / Lingkup Pengawasan'] || row['Wilayah Kerja'] || row['wilayahKerja'] || row['Wilayah'] || row['wilayah'] || '') as string;
     const rawStatus = (row['Status (Aktif/Non-Aktif)'] || row['Status'] || row['status'] || 'Aktif') as string;
     const masaKerjaJabatan = (row['Masa Kerja Jabatan'] || row['Masa Kerja'] || '-') as string;
     const email = (row['Email Dinas'] || row['Email'] || row['email']) as string | undefined;
@@ -135,6 +126,7 @@ export function validateAndMapPegawai(rows: Record<string, unknown>[]): ImportRe
       jabatan,
       foto: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&h=256&q=80',
       unitKerja,
+      wilayahKerja: wilayahKerja ? wilayahKerja.trim() : undefined,
       status,
       masaKerjaJabatan,
       email: email ? email.trim() : undefined,
@@ -220,6 +212,7 @@ export function exportPegawaiToExcel(pegawaiList: Pegawai[]) {
     'Pangkat / Golongan': p.pangkatGol,
     'Jabatan': p.jabatan,
     'Unit Kerja': p.unitKerja,
+    'Wilayah Kerja': p.wilayahKerja || '-',
     'Status': p.status,
     'Masa Kerja Jabatan': p.masaKerjaJabatan,
     'Email': p.email || '-',
@@ -233,27 +226,70 @@ export function exportPegawaiToExcel(pegawaiList: Pegawai[]) {
 }
 
 /**
- * Export Barang BMD list to Excel
+ * Export comprehensive Rekapitulasi Inventaris BMD with employee assignments & summary
  */
-export function exportBarangToExcel(barangList: BarangBMD[]) {
-  const exportData = barangList.map((b, idx) => ({
-    'No': idx + 1,
-    'Kode Barang / NIB': b.kodeBarang,
-    'Nama Barang': b.namaBarang,
-    'Merk / Spesifikasi': b.merkTipe,
-    'No. Seri / Rangka / Pelat': b.noSeri,
-    'Tahun Perolehan': b.tahunPerolehan,
-    'Jumlah': `${b.jumlah} ${b.satuan}`,
-    'Nilai Perolehan (Rp)': b.nilaiPerolehan,
-    'Kondisi': b.kondisi === 'B' ? 'Baik (B)' : b.kondisi === 'RR' ? 'Rusak Ringan (RR)' : 'Rusak Berat (RB)',
-    'Status Pemakaian': b.statusPemakaian,
-    'Kode Lokasi / Ruang': b.kodeLokasiRuang,
-    'Sumber Dana': b.sumberDana,
-    'Keterangan': b.keterangan || '-',
-  }));
+export function exportRekapitulasiBMDToExcel(barangList: BarangBMD[], pegawaiList: Pegawai[] = []) {
+  const pegawaiMap = new Map(pegawaiList.map(p => [p.id, p]));
 
-  const ws = XLSX.utils.json_to_sheet(exportData);
+  // Sheet 1: Detailed items list
+  const dataDetails = barangList.map((b, idx) => {
+    const pemakai = b.idPegawaiPemakai ? pegawaiMap.get(b.idPegawaiPemakai) : null;
+    return {
+      'No': idx + 1,
+      'Kode Barang / NIB': b.kodeBarang,
+      'Nama Barang': b.namaBarang,
+      'Merk / Tipe / Spesifikasi': b.merkTipe,
+      'No. Seri / Rangka / Pelat': b.noSeri,
+      'Tahun Perolehan': b.tahunPerolehan,
+      'Jumlah': b.jumlah,
+      'Satuan': b.satuan,
+      'Nilai Perolehan (Rp)': b.nilaiPerolehan,
+      'Kondisi': b.kondisi === 'B' ? 'Baik (B)' : b.kondisi === 'RR' ? 'Rusak Ringan (RR)' : 'Rusak Berat (RB)',
+      'Status Pemakaian': b.statusPemakaian,
+      'Nama Pemakai BMD': pemakai ? pemakai.nama : (b.statusPemakaian === 'Dipakai' ? 'Pegawai Terdaftar' : '-'),
+      'NIP Pemakai': pemakai ? pemakai.nip : '-',
+      'Unit Kerja Pemakai': pemakai ? pemakai.unitKerja : '-',
+      'Lokasi Ruangan': b.kodeLokasiRuang,
+      'Sumber Dana': b.sumberDana,
+      'Tanggal Pelimpahan': b.tanggalPelimpahan || '-',
+      'Keterangan': b.keterangan || '-',
+    };
+  });
+
+  // Calculate summary metrics
+  const totalBarang = barangList.length;
+  const barangDipakai = barangList.filter(b => b.statusPemakaian === 'Dipakai').length;
+  const barangTersedia = barangList.filter(b => b.statusPemakaian === 'Tersedia').length;
+  const kondisiBaik = barangList.filter(b => b.kondisi === 'B').length;
+  const kondisiRR = barangList.filter(b => b.kondisi === 'RR').length;
+  const kondisiRB = barangList.filter(b => b.kondisi === 'RB').length;
+  const totalNilai = barangList.reduce((acc, curr) => acc + (curr.nilaiPerolehan || 0), 0);
+
+  // Sheet 2: Executive Summary
+  const summaryData = [
+    { 'Parameter Rekapitulasi': 'Pemerintah Daerah', 'Nilai / Keterangan': 'PEMERINTAH KOTA BANJARMASIN' },
+    { 'Parameter Rekapitulasi': 'Perangkat Daerah', 'Nilai / Keterangan': 'INSPEKTORAT DAERAH KOTA BANJARMASIN' },
+    { 'Parameter Rekapitulasi': 'Tanggal Penarikan Rekap', 'Nilai / Keterangan': new Date().toLocaleDateString('id-ID', { dateStyle: 'full' }) },
+    { 'Parameter Rekapitulasi': 'Total Seluruh Unit Aset BMD', 'Nilai / Keterangan': totalBarang },
+    { 'Parameter Rekapitulasi': 'Aset Sedang Dipakai Pegawai', 'Nilai / Keterangan': barangDipakai },
+    { 'Parameter Rekapitulasi': 'Aset Tersedia di Gudang', 'Nilai / Keterangan': barangTersedia },
+    { 'Parameter Rekapitulasi': 'Kondisi Baik (B)', 'Nilai / Keterangan': kondisiBaik },
+    { 'Parameter Rekapitulasi': 'Kondisi Rusak Ringan (RR)', 'Nilai / Keterangan': kondisiRR },
+    { 'Parameter Rekapitulasi': 'Kondisi Rusak Berat (RB)', 'Nilai / Keterangan': kondisiRB },
+    { 'Parameter Rekapitulasi': 'Total Akumulasi Nilai Aset (Rp)', 'Nilai / Keterangan': totalNilai },
+  ];
+
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Inventaris BMD');
-  XLSX.writeFile(wb, `Data_Inventaris_BMD_Inspektorat_${new Date().toISOString().slice(0, 10)}.xlsx`);
+
+  // Create & append sheets
+  const wsDetails = XLSX.utils.json_to_sheet(dataDetails);
+  const wsSummary = XLSX.utils.json_to_sheet(summaryData);
+
+  XLSX.utils.book_append_sheet(wb, wsDetails, 'Daftar Rinci BMD');
+  XLSX.utils.book_append_sheet(wb, wsSummary, 'Ringkasan Rekapitulasi');
+
+  const todayStr = new Date().toISOString().slice(0, 10);
+  XLSX.writeFile(wb, `Laporan_Rekapitulasi_BMD_Inspektorat_${todayStr}.xlsx`);
 }
+
+export const exportBarangToExcel = exportRekapitulasiBMDToExcel;

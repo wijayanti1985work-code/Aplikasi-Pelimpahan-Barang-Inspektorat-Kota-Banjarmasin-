@@ -115,10 +115,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           </div>
           <div className="mt-3">
             <span className="text-2xl font-extrabold text-[#111827]">{stats.totalPegawai}</span>
-            <span className="text-xs text-[#6B7280] ml-1 font-medium">Orang</span>
+            <span className="text-xs text-[#6B7280] ml-1 font-medium">/ 150 Orang (Maks)</span>
           </div>
           <div className="mt-2 text-[11px] text-[#6B7280] flex items-center justify-between">
-            <span>Pegawai Aktif: <b className="text-[#0F766E]">{stats.pegawaiAktif}</b></span>
+            <span>Aktif: <b className="text-[#0F766E]">{stats.pegawaiAktif}</b></span>
             <span className="text-[#0F766E] font-semibold group-hover:underline">Lihat Semua →</span>
           </div>
         </div>

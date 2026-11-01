@@ -16,7 +16,7 @@ import {
   AlertCircle,
   FileDown,
 } from 'lucide-react';
-import type { BarangBMD, InstansiConfig, Pegawai, Pejabat, PelimpahanBMD } from '../../types/index.ts';
+import type { BarangBMD, InstansiConfig, Pegawai, Pejabat, PelimpahanBMD, Ruangan } from '../../types/index.ts';
 import { formatTanggalIndonesia, formatRupiah } from '../../utils/logic.ts';
 import { OfficialDocumentModal } from '../documents/OfficialDocumentModal.tsx';
 import { ConfirmModal } from '../common/ConfirmModal.tsx';
@@ -27,6 +27,7 @@ interface PelimpahanViewProps {
   barangList: BarangBMD[];
   pejabatList: Pejabat[];
   instansi: InstansiConfig;
+  ruanganList?: Ruangan[];
   onOpenCreate: () => void;
   onEdit: (pelimpahan: PelimpahanBMD) => void;
   onDelete: (id: string) => void;
@@ -39,6 +40,7 @@ export const PelimpahanView: React.FC<PelimpahanViewProps> = ({
   barangList,
   pejabatList,
   instansi,
+  ruanganList,
   onOpenCreate,
   onEdit,
   onDelete,
@@ -333,6 +335,7 @@ export const PelimpahanView: React.FC<PelimpahanViewProps> = ({
           barangList={barangList.filter(b => selectedForDoc.pelimpahan.barangIds.includes(b.id))}
           pejabatList={pejabatList}
           instansi={instansi}
+          ruanganList={ruanganList}
           initialDocType={selectedForDoc.initialTab}
           onClose={() => setSelectedForDoc(null)}
           onUpdatePelimpahan={updated => {

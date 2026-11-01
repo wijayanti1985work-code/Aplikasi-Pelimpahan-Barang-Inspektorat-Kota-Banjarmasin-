@@ -1,17 +1,21 @@
 import React, { useState } from 'react';
-import { X, Upload, Check, User, AlertCircle, Camera } from 'lucide-react';
-import type { Pegawai, StatusPegawai } from '../../types/index.ts';
+import { X, Upload, Check, User, AlertCircle, Camera, Building2, MapPin } from 'lucide-react';
+import type { Pegawai, StatusPegawai, UnitKerja } from '../../types/index.ts';
 
 interface PegawaiModalProps {
   initialData?: Pegawai;
+  unitKerjaList?: UnitKerja[];
+  currentPegawaiCount?: number;
   onSave: (pegawai: Pegawai) => void;
   onClose: () => void;
+  onAddNewUnitKerja?: (unit: UnitKerja) => void;
 }
 
-const UNIT_KERJA_OPTIONS = [
+const DEFAULT_UNIT_KERJA_OPTIONS = [
   'Inspektorat Pembantu Wilayah I',
   'Inspektorat Pembantu Wilayah II',
   'Inspektorat Pembantu Wilayah III',
+  'Inspektorat Pembantu Wilayah IV',
   'Inspektorat Pembantu Khusus',
   'Sekretariat',
 ];
@@ -34,14 +38,31 @@ const PANGKAT_GOL_OPTIONS = [
 
 export const PegawaiModal: React.FC<PegawaiModalProps> = ({
   initialData,
+  unitKerjaList,
+  currentPegawaiCount = 0,
   onSave,
   onClose,
+  onAddNewUnitKerja,
 }) => {
+  const dynamicUnitOptions = unitKerjaList && unitKerjaList.length > 0
+    ? unitKerjaList.map(u => u.namaUnit)
+    : DEFAULT_UNIT_KERJA_OPTIONS;
+
+  const initialUnit = initialData?.unitKerja || dynamicUnitOptions[0];
+  const matchedUnitInitial = unitKerjaList?.find(
+    u => u.namaUnit.toLowerCase() === initialUnit.toLowerCase() || u.kodeUnit.toLowerCase() === initialUnit.toLowerCase()
+  );
+
   const [nama, setNama] = useState(initialData?.nama || '');
   const [nip, setNip] = useState(initialData?.nip || '');
   const [pangkatGol, setPangkatGol] = useState(initialData?.pangkatGol || 'Penata / III/c');
   const [jabatan, setJabatan] = useState(initialData?.jabatan || 'Auditor Ahli Pertama');
-  const [unitKerja, setUnitKerja] = useState(initialData?.unitKerja || UNIT_KERJA_OPTIONS[0]);
+  const [unitKerja, setUnitKerja] = useState(initialUnit);
+  const [isCustomUnit, setIsCustomUnit] = useState(false);
+  const [customUnitName, setCustomUnitName] = useState('');
+  const [wilayahKerja, setWilayahKerja] = useState(
+    initialData?.wilayahKerja || matchedUnitInitial?.wilayahKerja || ''
+  );
   const [status, setStatus] = useState<StatusPegawai>(initialData?.status || 'Aktif');
   const [masaKerjaJabatan, setMasaKerjaJabatan] = useState(initialData?.masaKerjaJabatan || '2 Tahun 0 Bulan');
   const [email, setEmail] = useState(initialData?.email || '');
@@ -51,6 +72,16 @@ export const PegawaiModal: React.FC<PegawaiModalProps> = ({
   );
 
   const [errorMsg, setErrorMsg] = useState('');
+
+  const handleUnitSelectChange = (newUnit: string) => {
+    setUnitKerja(newUnit);
+    const matched = unitKerjaList?.find(
+      u => u.namaUnit.toLowerCase() === newUnit.toLowerCase() || u.kodeUnit.toLowerCase() === newUnit.toLowerCase()
+    );
+    if (matched && matched.wilayahKerja) {
+      setWilayahKerja(matched.wilayahKerja);
+    }
+  };
 
   const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -72,6 +103,10 @@ export const PegawaiModal: React.FC<PegawaiModalProps> = ({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (!initialData && currentPegawaiCount >= 150) {
+      setErrorMsg('Batas kapasitas maksimal pegawai (150 orang) telah tercapai. Tidak dapat menambah pegawai baru.');
+      return;
+    }
     if (!nama.trim()) {
       setErrorMsg('Nama pegawai tidak boleh kosong');
       return;
@@ -81,13 +116,34 @@ export const PegawaiModal: React.FC<PegawaiModalProps> = ({
       return;
     }
 
+    const finalUnit = isCustomUnit && customUnitName.trim() ? customUnitName.trim() : unitKerja;
+    if (!finalUnit) {
+      setErrorMsg('Unit kerja tidak boleh kosong');
+      return;
+    }
+
+    // Auto register custom unit into master unit list if newly entered
+    if (isCustomUnit && customUnitName.trim() && onAddNewUnitKerja) {
+      const existing = unitKerjaList?.find(u => u.namaUnit.toLowerCase() === customUnitName.trim().toLowerCase());
+      if (!existing) {
+        onAddNewUnitKerja({
+          id: 'unit-' + Date.now(),
+          kodeUnit: customUnitName.trim().substring(0, 6).toUpperCase().replace(/\s+/g, '-'),
+          namaUnit: customUnitName.trim(),
+          wilayahKerja: wilayahKerja.trim() || `Lingkup Pengawasan ${customUnitName.trim()}`,
+          keterangan: 'Ditambahkan via Form Input Pegawai',
+        });
+      }
+    }
+
     const payload: Pegawai = {
       id: initialData?.id || 'peg-' + Date.now(),
       nama: nama.trim(),
       nip: nip.trim(),
       pangkatGol,
       jabatan: jabatan.trim(),
-      unitKerja,
+      unitKerja: finalUnit,
+      wilayahKerja: wilayahKerja.trim() || undefined,
       status,
       masaKerjaJabatan: masaKerjaJabatan.trim(),
       email: email.trim() || undefined,
@@ -235,36 +291,83 @@ export const PegawaiModal: React.FC<PegawaiModalProps> = ({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Unit Kerja / Wilayah Kerja
-              </label>
-              <select
-                value={unitKerja}
-                onChange={e => setUnitKerja(e.target.value)}
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg text-slate-800"
+          {/* Unit Kerja & Wilayah Kerja Section */}
+          <div className="p-4 bg-teal-50/50 rounded-xl border border-teal-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-teal-900 flex items-center gap-1.5">
+                <Building2 className="w-4 h-4 text-[#0F766E]" />
+                Penempatan Unit Kerja & Wilayah Pengawasan
+              </span>
+              <button
+                type="button"
+                onClick={() => setIsCustomUnit(!isCustomUnit)}
+                className="text-[11px] font-semibold text-[#0F766E] hover:text-teal-900 underline cursor-pointer"
               >
-                {UNIT_KERJA_OPTIONS.map(opt => (
-                  <option key={opt} value={opt}>
-                    {opt}
-                  </option>
-                ))}
-              </select>
+                {isCustomUnit ? '← Pilih dari Master Unit' : '+ Input Unit Baru/Kustom'}
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Unit Kerja <span className="text-rose-500">*</span>
+                </label>
+                {isCustomUnit ? (
+                  <input
+                    type="text"
+                    value={customUnitName}
+                    onChange={e => setCustomUnitName(e.target.value)}
+                    placeholder="Contoh: Inspektorat Pembantu Wilayah I"
+                    className="w-full px-3 py-2 text-xs bg-white border border-teal-300 rounded-lg focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 text-slate-800"
+                    required
+                  />
+                ) : (
+                  <select
+                    value={unitKerja}
+                    onChange={e => handleUnitSelectChange(e.target.value)}
+                    className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg text-slate-800 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600"
+                  >
+                    {Array.from(new Set([unitKerja, ...dynamicUnitOptions])).map(opt => (
+                      <option key={opt} value={opt}>
+                        {opt}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Status Kepegawaian
+                </label>
+                <select
+                  value={status}
+                  onChange={e => setStatus(e.target.value as StatusPegawai)}
+                  className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg text-slate-800"
+                >
+                  <option value="Aktif">Aktif</option>
+                  <option value="Mutasi/Pindah">Mutasi/Pindah</option>
+                  <option value="Pensiun">Pensiun</option>
+                  <option value="Non-Aktif">Non-Aktif</option>
+                </select>
+              </div>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Status Kepegawaian
+              <label className="block text-xs font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                <span className="flex items-center gap-1">
+                  <MapPin className="w-3.5 h-3.5 text-[#0F766E]" />
+                  Wilayah Kerja / Lingkup Pengawasan
+                </span>
+                <span className="text-[10px] text-teal-700 font-normal">Tersinkronisasi otomatis dengan Master Unit</span>
               </label>
-              <select
-                value={status}
-                onChange={e => setStatus(e.target.value as StatusPegawai)}
-                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg text-slate-800"
-              >
-                <option value="Aktif">Aktif</option>
-                <option value="Non-Aktif">Non-Aktif</option>
-              </select>
+              <textarea
+                rows={2}
+                value={wilayahKerja}
+                onChange={e => setWilayahKerja(e.target.value)}
+                placeholder="Contoh: Kecamatan Banjarmasin Tengah & Perangkat Daerah Bidang Tata Pemerintahan & Kesra"
+                className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 text-slate-800 leading-relaxed"
+              />
             </div>
           </div>
 

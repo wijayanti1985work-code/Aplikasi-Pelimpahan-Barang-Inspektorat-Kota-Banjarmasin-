@@ -10,9 +10,11 @@ import {
   Building2,
   Shield,
   Layers,
+  DoorOpen,
+  Network,
 } from 'lucide-react';
 
-export type NavTab = 'dashboard' | 'pelimpahan' | 'pegawai' | 'barang' | 'pejabat' | 'instansi' | 'regulasi';
+export type NavTab = 'dashboard' | 'pelimpahan' | 'pegawai' | 'barang' | 'ruangan' | 'unitKerja' | 'pejabat' | 'instansi' | 'regulasi';
 
 interface SidebarProps {
   activeTab: NavTab;
@@ -23,6 +25,8 @@ interface SidebarProps {
     barang: number;
     pelimpahan: number;
     barangDipakai: number;
+    ruangan?: number;
+    unitKerja?: number;
   };
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
@@ -60,6 +64,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Inventaris BMD',
       icon: Package,
       badge: counts.barang,
+    },
+    {
+      id: 'ruangan' as NavTab,
+      label: 'Master Lokasi / Ruang',
+      icon: DoorOpen,
+      badge: counts.ruangan ?? null,
+    },
+    {
+      id: 'unitKerja' as NavTab,
+      label: 'Master Unit / Wilayah',
+      icon: Network,
+      badge: counts.unitKerja ?? null,
     },
     {
       id: 'pejabat' as NavTab,

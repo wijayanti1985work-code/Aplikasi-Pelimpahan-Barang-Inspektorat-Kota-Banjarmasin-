@@ -1,7 +1,41 @@
 export type KondisiBarang = 'B' | 'RR' | 'RB'; // Baik, Rusak Ringan, Rusak Berat
-export type StatusPegawai = 'Aktif' | 'Non-Aktif';
+export type StatusPegawai = 'Aktif' | 'Mutasi/Pindah' | 'Pensiun' | 'Non-Aktif';
 export type StatusPemakaian = 'Tersedia' | 'Dipakai';
 export type StatusDokumen = 'Draf' | 'Disahkan';
+
+export interface PelepasanItemAction {
+  idBarang: string;
+  kodeBarang: string;
+  namaBarang: string;
+  merkTipe: string;
+  noSeri: string;
+  kondisi: KondisiBarang;
+  tindakan: 'Gudang' | 'AlihkanPegawai';
+  idPegawaiBaru?: string;
+  namaPegawaiBaru?: string;
+}
+
+export interface PelepasanAsetRecord {
+  id: string;
+  nomorBAP: string; // e.g. "027/012/BAP-BMD/ITK-BJM/2026"
+  tanggal: string;  // YYYY-MM-DD
+  idPegawaiAsal: string;
+  namaPegawaiAsal: string;
+  nipPegawaiAsal: string;
+  jabatanPegawaiAsal: string;
+  unitKerjaPegawaiAsal: string;
+  alasan: 'Mutasi/Pindah Tugas' | 'Purna Tugas (Pensiun)' | 'Penarikan Dinas Rutin';
+  keteranganAlasan?: string;
+  items: PelepasanItemAction[];
+  idPejabatPengurus?: string;
+  namaPejabatPengurus?: string;
+  nipPejabatPengurus?: string;
+  idInspektur?: string;
+  namaInspektur?: string;
+  nipInspektur?: string;
+  statusPegawaiBaru: StatusPegawai;
+  createdAt: string;
+}
 
 export interface Pejabat {
   id: string;
@@ -22,6 +56,7 @@ export interface Pegawai {
   jabatan: string;
   foto: string;
   unitKerja: string;
+  wilayahKerja?: string; // Wilayah kerja / lingkup pengawasan spesifik pegawai
   status: StatusPegawai;
   masaKerjaJabatan: string;
   email?: string;
@@ -104,5 +139,27 @@ export interface GoogleSheetBackupRecord {
   totalPegawai: number;
   totalBarang: number;
   totalPelimpahan: number;
+}
+
+export interface Ruangan {
+  id: string;
+  kodeRuang: string; // e.g. "R.01", "R.02", "SEC.01"
+  namaRuang: string; // e.g. "Ruang Riksa Irban I"
+  lantaiGedung: string; // e.g. "Lantai 2 Gedung Blok B"
+  penanggungJawab?: string;
+  keterangan?: string;
+}
+
+export interface UnitKerja {
+  id: string;
+  kodeUnit: string;        // e.g. "SET", "IRBAN-I", "IRBAN-II", "IRBAN-III", "IRBAN-IV", "IRBAN-SUS"
+  namaUnit: string;        // e.g. "Inspektorat Pembantu Wilayah I", "Sekretariat"
+  wilayahKerja: string;    // e.g. "Kecamatan Banjarmasin Tengah & Perangkat Daerah Bidang Tata Pemerintahan dan Hukum"
+  namaPimpinan?: string;   // Nama Kepala / Pimpinan Unit
+  nipPimpinan?: string;    // NIP Pimpinan
+  jabatanPimpinan?: string;// Jabatan Pimpinan
+  kontakUnit?: string;     // No Telp / Ext / WA
+  keterangan?: string;     // Deskripsi tugas pengawasan atau fungsi
+  createdAt?: string;
 }
 

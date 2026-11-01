@@ -14,6 +14,7 @@ import {
 import type { InstansiConfig } from '../../types/index.ts';
 import { DEFAULT_INSTANSI } from '../../services/storage.ts';
 import { ConfirmModal } from '../common/ConfirmModal.tsx';
+import { LOGO_PEMKOT_BANJARMASIN_BASE64 } from '../../assets/logoPemko.ts';
 
 interface InstansiViewProps {
   instansi: InstansiConfig;
@@ -143,33 +144,11 @@ export const InstansiView: React.FC<InstansiViewProps> = ({
             <div className="flex items-center justify-between gap-4">
               {/* Logo Kiri (Utama) */}
               <div className="w-20 h-20 shrink-0 flex items-center justify-center">
-                {form.logoUtamaUrl ? (
-                  <img
-                    src={form.logoUtamaUrl}
-                    alt="Logo Instansi"
-                    className="max-h-20 max-w-20 object-contain"
-                  />
-                ) : (
-                  /* Authentic Vector Kayuh Baimbai */
-                  <svg className="w-16 h-16 text-blue-900" viewBox="0 0 100 100" fill="none" stroke="currentColor">
-                    <path
-                      d="M50 5 L85 25 L85 70 L50 95 L15 70 L15 25 Z"
-                      fill="#1e3a8a"
-                      stroke="#f59e0b"
-                      strokeWidth="2"
-                    />
-                    <path
-                      d="M25 50 Q50 35 75 50 Q50 65 25 50 Z"
-                      fill="#f8fafc"
-                      stroke="#0f172a"
-                      strokeWidth="1.5"
-                    />
-                    <circle cx="50" cy="50" r="10" fill="#f59e0b" />
-                    <text x="50" y="80" textAnchor="middle" fill="#f8fafc" fontSize="6" fontWeight="bold">
-                      {form.semboyan || 'KAYUH BAIMBAI'}
-                    </text>
-                  </svg>
-                )}
+                <img
+                  src={form.logoUtamaUrl || LOGO_PEMKOT_BANJARMASIN_BASE64}
+                  alt="Logo Pemerintah Kota Banjarmasin"
+                  className="max-h-20 max-w-20 object-contain"
+                />
               </div>
 
               {/* Teks Kop Surat */}
@@ -226,11 +205,11 @@ export const InstansiView: React.FC<InstansiViewProps> = ({
             </label>
             <div className="flex items-center gap-4">
               <div className="w-20 h-20 rounded-xl bg-white border-2 border-slate-200 shadow-2xs flex items-center justify-center overflow-hidden shrink-0">
-                {form.logoUtamaUrl ? (
-                  <img src={form.logoUtamaUrl} alt="Logo Utama" className="w-full h-full object-contain p-1" />
-                ) : (
-                  <ImageIcon className="w-8 h-8 text-slate-400" />
-                )}
+                <img
+                  src={form.logoUtamaUrl || LOGO_PEMKOT_BANJARMASIN_BASE64}
+                  alt="Logo Utama"
+                  className="w-full h-full object-contain p-1"
+                />
               </div>
               <div className="space-y-1 text-xs">
                 <p className="text-[11px] text-slate-500">

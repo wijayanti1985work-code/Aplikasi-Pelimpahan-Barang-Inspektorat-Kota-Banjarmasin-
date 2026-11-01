@@ -50,7 +50,8 @@
         "status": { "type": "string" },
         "masaKerjaJabatan": { "type": "string" },
         "email": { "type": "string" },
-        "telepon": { "type": "string" }
+        "telepon": { "type": "string" },
+        "alamat": { "type": "string" }
       },
       "required": ["id", "nama", "nip"]
     },
@@ -62,12 +63,20 @@
         "id": { "type": "string" },
         "kodeBarang": { "type": "string" },
         "namaBarang": { "type": "string" },
-        "kategori": { "type": "string" },
+        "merkTipe": { "type": "string" },
+        "noSeri": { "type": "string" },
         "tahunPerolehan": { "type": "number" },
-        "nomorPolisi": { "type": "string" },
-        "nomorRangka": { "type": "string" },
-        "nomorMesin": { "type": "string" },
-        "statusPemakaian": { "type": "string" }
+        "jumlah": { "type": "number" },
+        "satuan": { "type": "string" },
+        "nilaiPerolehan": { "type": "number" },
+        "kondisi": { "type": "string" },
+        "sumberDana": { "type": "string" },
+        "kodeLokasiRuang": { "type": "string" },
+        "fotoBarang": { "type": "string" },
+        "statusPemakaian": { "type": "string" },
+        "idPegawaiPemakai": { "type": "string" },
+        "tanggalPelimpahan": { "type": "string" },
+        "keterangan": { "type": "string" }
       },
       "required": ["id", "kodeBarang", "namaBarang", "statusPemakaian"]
     },
@@ -77,15 +86,55 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "nomorSurat": { "type": "string" },
-        "nomorBAP": { "type": "string" },
-        "nomorSP": { "type": "string" },
+        "nomorBAST": { "type": "string" },
+        "nomorSK": { "type": "string" },
+        "nomorSPTJM": { "type": "string" },
+        "tanggal": { "type": "string" },
         "idPegawai": { "type": "string" },
         "barangIds": { "type": "array" },
-        "tanggal": { "type": "string" },
-        "status": { "type": "string" }
+        "keperluan": { "type": "string" },
+        "statusDokumen": { "type": "string" },
+        "tandaTanganPihakPertama": { "type": "string" },
+        "tandaTanganPihakKedua": { "type": "string" },
+        "tandaTanganPenggunaBarang": { "type": "string" },
+        "catatan": { "type": "string" }
       },
-      "required": ["id", "idPegawai", "tanggal", "status"]
+      "required": ["id", "idPegawai", "tanggal"]
+    },
+    "PelepasanAset": {
+      "title": "PelepasanAset",
+      "description": "Catatan pelepasan dan pengembalian aset BMD pegawai mutasi atau pensiun",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nomorBAP": { "type": "string" },
+        "tanggal": { "type": "string" },
+        "idPegawaiAsal": { "type": "string" },
+        "namaPegawaiAsal": { "type": "string" },
+        "nipPegawaiAsal": { "type": "string" },
+        "jabatanPegawaiAsal": { "type": "string" },
+        "unitKerjaPegawaiAsal": { "type": "string" },
+        "alasan": { "type": "string" },
+        "keteranganAlasan": { "type": "string" },
+        "items": { "type": "array" },
+        "statusPegawaiBaru": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "nomorBAP", "tanggal", "idPegawaiAsal"]
+    },
+    "Ruangan": {
+      "title": "Ruangan",
+      "description": "Master data lokasi dan kode ruangan inventaris BMD",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kodeRuang": { "type": "string" },
+        "namaRuang": { "type": "string" },
+        "lantaiGedung": { "type": "string" },
+        "penanggungJawab": { "type": "string" },
+        "keterangan": { "type": "string" }
+      },
+      "required": ["id", "kodeRuang", "namaRuang"]
     },
     "GoogleSheetBackup": {
       "title": "GoogleSheetBackup",
@@ -93,16 +142,34 @@
       "type": "object",
       "properties": {
         "id": { "type": "string" },
-        "timestamp": { "type": "string" },
         "spreadsheetId": { "type": "string" },
         "spreadsheetUrl": { "type": "string" },
-        "title": { "type": "string" },
+        "spreadsheetTitle": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "accountEmail": { "type": "string" },
         "totalPegawai": { "type": "number" },
         "totalBarang": { "type": "number" },
-        "totalPelimpahan": { "type": "number" },
-        "userEmail": { "type": "string" }
+        "totalPelimpahan": { "type": "number" }
       },
-      "required": ["id", "timestamp", "spreadsheetUrl"]
+      "required": ["id", "spreadsheetUrl"]
+    },
+    "UnitKerja": {
+      "title": "UnitKerja",
+      "description": "Master data unit kerja dan wilayah kerja inspektorat",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kodeUnit": { "type": "string" },
+        "namaUnit": { "type": "string" },
+        "wilayahKerja": { "type": "string" },
+        "namaPimpinan": { "type": "string" },
+        "nipPimpinan": { "type": "string" },
+        "jabatanPimpinan": { "type": "string" },
+        "kontakUnit": { "type": "string" },
+        "keterangan": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "kodeUnit", "namaUnit", "wilayahKerja"]
     }
   },
   "firestore": {
@@ -125,6 +192,18 @@
     "/pelimpahan/{pelimpahanId}": {
       "schema": "PelimpahanBMD",
       "description": "Koleksi riwayat pelimpahan dan dokumen BAP/SP"
+    },
+    "/pelepasan/{pelepasanId}": {
+      "schema": "PelepasanAset",
+      "description": "Koleksi riwayat pelepasan aset BMD dan BAP pengembalian"
+    },
+    "/ruangan/{ruanganId}": {
+      "schema": "Ruangan",
+      "description": "Koleksi master kode lokasi dan nama ruangan"
+    },
+    "/unitKerja/{unitKerjaId}": {
+      "schema": "UnitKerja",
+      "description": "Koleksi master data unit kerja dan wilayah kerja"
     },
     "/gsheet_backups/{backupId}": {
       "schema": "GoogleSheetBackup",

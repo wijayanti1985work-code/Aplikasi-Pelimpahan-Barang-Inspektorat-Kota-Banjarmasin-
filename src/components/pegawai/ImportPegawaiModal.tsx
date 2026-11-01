@@ -4,11 +4,13 @@ import type { Pegawai } from '../../types/index.ts';
 import { downloadTemplatePegawai, parseExcelFile, validateAndMapPegawai } from '../../utils/excelService.ts';
 
 interface ImportPegawaiModalProps {
+  currentPegawaiCount?: number;
   onImportSuccess: (pegawaiList: Pegawai[]) => void;
   onClose: () => void;
 }
 
 export const ImportPegawaiModal: React.FC<ImportPegawaiModalProps> = ({
+  currentPegawaiCount = 0,
   onImportSuccess,
   onClose,
 }) => {
@@ -38,9 +40,12 @@ export const ImportPegawaiModal: React.FC<ImportPegawaiModalProps> = ({
     }
   };
 
+  const availableSlots = Math.max(0, 150 - currentPegawaiCount);
+  const toImport = parsedPegawai.slice(0, availableSlots);
+
   const handleCommit = () => {
-    if (parsedPegawai.length === 0) return;
-    onImportSuccess(parsedPegawai);
+    if (toImport.length === 0) return;
+    onImportSuccess(toImport);
   };
 
   return (
@@ -192,11 +197,11 @@ export const ImportPegawaiModal: React.FC<ImportPegawaiModalProps> = ({
           <button
             type="button"
             onClick={handleCommit}
-            disabled={parsedPegawai.length === 0}
+            disabled={toImport.length === 0}
             className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-semibold text-white bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 disabled:pointer-events-none rounded-lg shadow-sm transition-colors cursor-pointer"
           >
             <Check className="w-4 h-4" />
-            Simpan {parsedPegawai.length} Pegawai ke Database
+            Simpan {toImport.length} Pegawai ke Database {parsedPegawai.length > toImport.length ? `(Dibatasi Kuota 150)` : ''}
           </button>
         </div>
       </div>

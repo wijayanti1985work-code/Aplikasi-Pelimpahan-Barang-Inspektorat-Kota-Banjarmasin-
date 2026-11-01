@@ -11,14 +11,16 @@ import {
   AlertCircle,
   HelpCircle,
   Layers,
+  Calendar,
 } from 'lucide-react';
-import type { BarangBMD, Pegawai, PelimpahanBMD } from '../../types/index.ts';
-import { formatRupiah, generateNomorDokumen, labelKondisi } from '../../utils/logic.ts';
+import type { BarangBMD, Pegawai, PelimpahanBMD, Ruangan } from '../../types/index.ts';
+import { formatRupiah, generateNomorDokumen, labelKondisi, getTanggalDinasDetail, formatLokasiRuang, findRuanganForItem } from '../../utils/logic.ts';
 
 interface PelimpahanFormModalProps {
   initialData?: PelimpahanBMD;
   pegawaiList: Pegawai[];
   barangList: BarangBMD[];
+  ruanganList?: Ruangan[];
   existingPelimpahanCount: number;
   onSave: (data: PelimpahanBMD) => void;
   onClose: () => void;
@@ -28,6 +30,7 @@ export const PelimpahanFormModal: React.FC<PelimpahanFormModalProps> = ({
   initialData,
   pegawaiList,
   barangList,
+  ruanganList = [],
   existingPelimpahanCount,
   onSave,
   onClose,
@@ -58,6 +61,8 @@ export const PelimpahanFormModal: React.FC<PelimpahanFormModalProps> = ({
   const [tanggal, setTanggal] = useState<string>(
     initialData?.tanggal || new Date().toISOString().slice(0, 10)
   );
+
+  const tglDetail = getTanggalDinasDetail(tanggal);
 
   const [keperluan, setKeperluan] = useState<string>(
     initialData?.keperluan ||
@@ -90,7 +95,14 @@ export const PelimpahanFormModal: React.FC<PelimpahanFormModalProps> = ({
       b.merkTipe.toLowerCase().includes(q) ||
       b.noSeri.toLowerCase().includes(q);
 
-    const matchRuang = filterRuang === 'Semua' || b.kodeLokasiRuang === filterRuang;
+    const formattedItemRoom = formatLokasiRuang(b, ruanganList);
+    const matchedRoom = findRuanganForItem(b, ruanganList);
+    const matchRuang =
+      filterRuang === 'Semua' ||
+      b.kodeLokasiRuang === filterRuang ||
+      formattedItemRoom === filterRuang ||
+      matchedRoom?.kodeRuang === filterRuang ||
+      matchedRoom?.namaRuang === filterRuang;
     return matchSearch && matchRuang;
   });
 
@@ -133,7 +145,13 @@ export const PelimpahanFormModal: React.FC<PelimpahanFormModalProps> = ({
     onSave(payload);
   };
 
-  const uniqueRooms = ['Semua', ...new Set(barangList.map(b => b.kodeLokasiRuang))];
+  const uniqueRooms = [
+    'Semua',
+    ...new Set([
+      ...ruanganList.map(r => `[${r.kodeRuang}] ${r.namaRuang}`),
+      ...barangList.map(b => formatLokasiRuang(b, ruanganList)),
+    ]),
+  ];
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-slate-900/70 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5">
@@ -209,6 +227,10 @@ export const PelimpahanFormModal: React.FC<PelimpahanFormModalProps> = ({
                   className="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-600 text-slate-800"
                   required
                 />
+                <p className="mt-1.5 text-[11px] text-teal-800 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200/80 flex items-center gap-1.5">
+                  <Calendar className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+                  <span>Hari: <b className="font-bold text-teal-900">{tglDetail.hari}</b> ({tglDetail.hariTanggalFormatted})</span>
+                </p>
 
                 <div className="mt-2 space-y-2">
                   <div>
