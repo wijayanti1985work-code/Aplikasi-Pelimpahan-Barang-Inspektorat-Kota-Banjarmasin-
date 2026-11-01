@@ -148,14 +148,20 @@ export default function App() {
   const handleAddBarang = (b: BarangBMD) => {
     StorageService.addBarang(b);
     setBarangList(StorageService.getBarang());
+    setNotificationToast(`Inventaris "${b.namaBarang}" beserta foto dokumentasi berhasil disimpan.`);
+    setTimeout(() => setNotificationToast(null), 3500);
   };
   const handleUpdateBarang = (b: BarangBMD) => {
     StorageService.updateBarang(b);
     setBarangList(StorageService.getBarang());
+    setNotificationToast(`Perubahan data inventaris "${b.namaBarang}" berhasil diperbarui.`);
+    setTimeout(() => setNotificationToast(null), 3500);
   };
   const handleDeleteBarang = (id: string) => {
     StorageService.deleteBarang(id);
     setBarangList(StorageService.getBarang());
+    setNotificationToast('Data inventaris BMD berhasil dihapus.');
+    setTimeout(() => setNotificationToast(null), 3500);
   };
   const handleBulkAddBarang = (list: BarangBMD[]) => {
     const current = StorageService.getBarang();

@@ -1,16 +1,18 @@
 # SIP-BMD: Perbaikan Persistensi Data, Tombol Hapus Pegawai & Fitur Pelepasan Aset
 
-Rencana komprehensif untuk mengatasi masalah data kembali ke awal setelah lama tidak digunakan, memperbaiki fungsi tombol hapus pegawai yang terputus, serta menambahkan alur kerja lengkap Pelepasan Aset BMD bagi aparatur sipil yang pindah tugas atau pensiun lengkap dengan Berita Acara Serah Terima Pengembalian resmi.
+Rencana komprehensif untuk mengatasi masalah data kembali ke awal setelah lama tidak digunakan, memperbaiki fungsi tombol hapus pegawai yang terputus, menambahkan alur kerja lengkap Pelepasan Aset BMD bagi aparatur sipil yang pindah tugas atau pensiun lengkap dengan Berita Acara Serah Terima Pengembalian resmi, serta **mengatasi masalah penyimpanan foto barang (kompresi otomatis Canvas & optimasi kuota)**.
 
 ---
 
 ### User Review & Critical Decisions
 
 > [!IMPORTANT]
-> Berdasarkan konfirmasi pada tahap klarifikasi sebelumnya, seluruh rekomendasi telah disetujui:
-> 1. **Alur Pelepasan Aset**: Pengguna dapat memilih untuk mengembalikan aset ke stok gudang (*Tersedia*) atau langsung mengalihkan penguasaannya ke pegawai pengganti (*Mutasi Pemakai*).
-> 2. **Status Kepegawaian**: Sistem menyediakan status spesifik (`Mutasi/Pindah`, `Pensiun`, atau `Non-Aktif`) setelah seluruh aset diserahkan/dilepas, dengan riwayat penguasaan barang tetap tersimpan rapi untuk keperluan audit BPK/Inspektorat.
-> 3. **Dokumen Resmi**: Disediakan format dokumen cetak resmi **Berita Acara Pengembalian/Pelepasan Barang Milik Daerah (BAP-BMD)** lengkap dengan kop dinas Pemkot Banjarmasin, data rincian barang, dan blok tanda tangan para pihak.
+> **Pembaruan Terbaru (Perbaikan Simpan Foto Barang)**:
+> 1. **Penyebab Masalah**: Sebelumnya foto barang dari kamera HP/laptop berukuran besar (2–8 MB) di-encode mentah ke string Base64 (berukuran ~3–10 MB). Ini langsung memicu error kuota browser `QuotaExceededError` di `localStorage` (maks 5 MB) dan melebihi batas 1 MB per dokumen di Firestore, sehingga penyimpanan terhenti dan gagal.
+> 2. **Solusi yang Diterapkan**:
+>    - **Kompresor Canvas Otomatis (`src/utils/imageCompressor.ts`)**: Setiap foto yang diunggah (apapun ukuran aslinya) secara otomatis di-rescale ke dimensi ideal (maks 1000px) dan dikompresi ke format JPEG kualitas tinggi berukuran hanya **30 KB – 75 KB** (98% lebih ringan tanpa mengurangi ketajaman label, nomor seri, dan NIB).
+>    - **Dukungan Berbagai Mode Input**: Pengguna kini dapat memilih foto via **Kamera / File HP & Komputer**, **Tautan/URL Gambar Langsung**, atau **Galeri Preset Standar BMD** (Laptop, PC, Mobil, Motor, Drone, Printer, Proyektor, AC, dll).
+>    - **Penanganan Kuota Resilien (`StorageService.ts`)**: `localStorage.setItem` kini dibungkus dengan proteksi kuota otomatis dan sinkronisasi Cloud Firestore yang aman tanpa crash.
 
 ---
 

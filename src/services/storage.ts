@@ -483,7 +483,11 @@ export const StorageService = {
   },
   savePegawai(data: Pegawai[]) {
     const limitedData = data.slice(0, MAX_PEGAWAI_LIMIT);
-    localStorage.setItem(STORAGE_KEYS.PEGAWAI, JSON.stringify(limitedData));
+    try {
+      localStorage.setItem(STORAGE_KEYS.PEGAWAI, JSON.stringify(limitedData));
+    } catch (e) {
+      console.warn('LocalStorage savePegawai quota warning:', e);
+    }
     FirestoreService.savePegawai(limitedData).catch(err => console.warn('Sync savePegawai:', err));
   },
   clearAllPegawai(): { updatedBarang: BarangBMD[] } {
@@ -552,7 +556,11 @@ export const StorageService = {
   getBarang(): BarangBMD[] {
     const raw = localStorage.getItem(STORAGE_KEYS.BARANG);
     if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.BARANG, JSON.stringify(SEED_BARANG));
+      try {
+        localStorage.setItem(STORAGE_KEYS.BARANG, JSON.stringify(SEED_BARANG));
+      } catch (e) {
+        console.warn('Initial seed saveBarang warning:', e);
+      }
       return SEED_BARANG;
     }
     try {
@@ -562,8 +570,27 @@ export const StorageService = {
     }
   },
   saveBarang(data: BarangBMD[]) {
-    localStorage.setItem(STORAGE_KEYS.BARANG, JSON.stringify(data));
-    FirestoreService.saveBarang(data).catch(err => console.warn('Sync saveBarang:', err));
+    try {
+      localStorage.setItem(STORAGE_KEYS.BARANG, JSON.stringify(data));
+    } catch (quotaErr) {
+      console.warn('LocalStorage quota limit reached in saveBarang, applying safety recovery:', quotaErr);
+      try {
+        // If quota exceeded due to legacy uncompressed base64 images, replace oversized base64
+        const sanitized = data.map(b => {
+          if (b.fotoBarang && b.fotoBarang.startsWith('data:image') && b.fotoBarang.length > 180000) {
+            return {
+              ...b,
+              fotoBarang: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=400&q=80',
+            };
+          }
+          return b;
+        });
+        localStorage.setItem(STORAGE_KEYS.BARANG, JSON.stringify(sanitized));
+      } catch (fatalErr) {
+        console.error('LocalStorage critical save error:', fatalErr);
+      }
+    }
+    FirestoreService.saveBarang(data).catch(err => console.warn('Sync saveBarang to Cloud:', err));
   },
   addBarang(barang: BarangBMD) {
     const current = this.getBarang();

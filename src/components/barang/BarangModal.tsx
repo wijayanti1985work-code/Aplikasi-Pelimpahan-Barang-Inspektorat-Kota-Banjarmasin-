@@ -1,7 +1,26 @@
-import React, { useState } from 'react';
-import { X, Package, Upload, Check, AlertCircle, Camera, Banknote } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import {
+  X,
+  Package,
+  Upload,
+  Check,
+  AlertCircle,
+  Camera,
+  Banknote,
+  Loader2,
+  Image as ImageIcon,
+  Link as LinkIcon,
+  Sparkles,
+  Trash2,
+} from 'lucide-react';
 import type { BarangBMD, KondisiBarang, StatusPemakaian, Ruangan } from '../../types/index.ts';
 import { terbilangRupiah, findRuanganForItem } from '../../utils/logic.ts';
+import {
+  compressImageFile,
+  getBase64SizeKb,
+  formatSize,
+  PRESET_ASSET_PHOTOS,
+} from '../../utils/imageCompressor.ts';
 
 interface BarangModalProps {
   initialData?: BarangBMD;
@@ -22,6 +41,9 @@ const DEFAULT_RUANG_OPTIONS = [
   '[R.09] Gudang Aset / BMD',
   '[R.10] Ruang Riksa Irban IV',
 ];
+
+const DEFAULT_PHOTO_PLACEHOLDER =
+  'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=600&q=80';
 
 export const BarangModal: React.FC<BarangModalProps> = ({
   initialData,
@@ -60,16 +82,30 @@ export const BarangModal: React.FC<BarangModalProps> = ({
     : initialData?.kodeLokasiRuang || roomOptions[0];
   const [kodeLokasiRuang, setKodeLokasiRuang] = useState(initialRoomVal);
   const [keterangan, setKeterangan] = useState(initialData?.keterangan || '');
-  const [fotoBarang, setFotoBarang] = useState(
-    initialData?.fotoBarang || 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?auto=format&fit=crop&w=400&q=80'
-  );
 
+  // Photo States with compression & multi-mode
+  const [fotoBarang, setFotoBarang] = useState<string>(
+    initialData?.fotoBarang || DEFAULT_PHOTO_PLACEHOLDER
+  );
+  const [isCompressingPhoto, setIsCompressingPhoto] = useState(false);
+  const [photoSizeBadge, setPhotoSizeBadge] = useState<string>(() => {
+    if (initialData?.fotoBarang) {
+      const kb = getBase64SizeKb(initialData.fotoBarang);
+      return kb > 0 ? `Ukuran: ${formatSize(kb)}` : 'Foto Tersimpan';
+    }
+    return 'Foto Standar';
+  });
+  const [photoInputMode, setPhotoInputMode] = useState<'upload' | 'url' | 'preset'>('upload');
+  const [urlInputVal, setUrlInputVal] = useState('');
+  const [showPresetPicker, setShowPresetPicker] = useState(false);
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   // Handle formatted numeric input with thousands separator
   const handleNilaiInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawVal = e.target.value;
-    // Extract only digits
     const cleanedDigits = rawVal.replace(/\D/g, '');
 
     if (!cleanedDigits) {
@@ -79,27 +115,71 @@ export const BarangModal: React.FC<BarangModalProps> = ({
     }
 
     const numericValue = parseInt(cleanedDigits, 10);
-    // Format with Indonesian thousand separators (e.g. 15.000.000)
     setDisplayNilai(new Intl.NumberFormat('id-ID').format(numericValue));
     setNilaiPerolehan(numericValue);
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  /**
+   * Automatic Canvas Compression Upload Handler
+   * Resizes camera/phone photos to max 1000px and compresses to ~40-75 KB JPEG.
+   * Completely bypasses LocalStorage 5MB quota and Firestore 1MB document limit.
+   */
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 3 * 1024 * 1024) {
-      setErrorMsg('Ukuran foto maksimal 3 MB');
+    setErrorMsg('');
+    setIsCompressingPhoto(true);
+
+    try {
+      // Automatic canvas compression with high quality retention
+      const result = await compressImageFile(file, {
+        maxWidth: 1000,
+        maxHeight: 1000,
+        quality: 0.78,
+        targetMaxKb: 150,
+      });
+
+      setFotoBarang(result.dataUrl);
+      setPhotoSizeBadge(`Ukuran: ${formatSize(result.sizeKb)} (Terkoreksi Ringan)`);
+      setSuccessMsg(`Foto berhasil dioptimalkan (${formatSize(result.originalSizeKb)} ➔ ${formatSize(result.sizeKb)}) dan siap disimpan.`);
+      setTimeout(() => setSuccessMsg(''), 4000);
+    } catch (err: any) {
+      console.error('Photo compression error:', err);
+      setErrorMsg(err?.message || 'Gagal memproses foto gambar. Pastikan file berupa foto yang valid.');
+    } finally {
+      setIsCompressingPhoto(false);
+      // Reset input value so selecting the same photo triggers onChange
+      if (e.target) e.target.value = '';
+    }
+  };
+
+  const handleApplyUrl = () => {
+    if (!urlInputVal.trim()) {
+      setErrorMsg('Masukkan URL gambar yang valid.');
       return;
     }
+    setFotoBarang(urlInputVal.trim());
+    setPhotoSizeBadge('Tautan URL Eksternal');
+    setUrlInputVal('');
+    setPhotoInputMode('upload');
+    setSuccessMsg('URL foto berhasil diterapkan.');
+    setTimeout(() => setSuccessMsg(''), 3000);
+  };
 
-    const reader = new FileReader();
-    reader.onload = event => {
-      if (event.target?.result) {
-        setFotoBarang(event.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
+  const handleSelectPreset = (url: string, label: string) => {
+    setFotoBarang(url);
+    setPhotoSizeBadge(`Preset: ${label}`);
+    setShowPresetPicker(false);
+    setSuccessMsg(`Foto "${label}" berhasil dipilih.`);
+    setTimeout(() => setSuccessMsg(''), 3000);
+  };
+
+  const handleResetPhoto = () => {
+    setFotoBarang(DEFAULT_PHOTO_PLACEHOLDER);
+    setPhotoSizeBadge('Foto Standar');
+    setSuccessMsg('Foto dikembalikan ke foto standar.');
+    setTimeout(() => setSuccessMsg(''), 3000);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -115,7 +195,6 @@ export const BarangModal: React.FC<BarangModalProps> = ({
       return;
     }
 
-    // No restrictive range validation: any non-negative number is valid
     const finalNilai = isNaN(nilaiPerolehan) || nilaiPerolehan < 0 ? 0 : nilaiPerolehan;
 
     const payload: BarangBMD = {
@@ -138,7 +217,12 @@ export const BarangModal: React.FC<BarangModalProps> = ({
       keterangan: keterangan.trim(),
     };
 
-    onSave(payload);
+    try {
+      onSave(payload);
+    } catch (saveErr: any) {
+      console.error('Error in onSave:', saveErr);
+      setErrorMsg('Gagal menyimpan data barang: ' + (saveErr?.message || 'Terjadi kesalahan sistem'));
+    }
   };
 
   return (
@@ -178,49 +262,215 @@ export const BarangModal: React.FC<BarangModalProps> = ({
             </div>
           )}
 
-          {/* Photo Upload & Preview */}
-          <div className="flex items-center gap-5 p-4 bg-[#F3F4F6] rounded-xl border border-[#E5E7EB]">
-            <div className="relative group shrink-0">
-              <img
-                src={fotoBarang}
-                alt="Preview Barang"
-                className="w-24 h-20 rounded-xl object-cover border-2 border-white shadow-xs"
-              />
-              <label
-                htmlFor="photo-upload-bmd"
-                className="absolute inset-0 bg-slate-900/60 rounded-xl text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-[10px]"
-              >
-                <Camera className="w-4 h-4 mb-0.5" />
-                Ganti
-              </label>
-              <input
-                id="photo-upload-bmd"
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
+          {successMsg && (
+            <div className="p-3 bg-emerald-50 text-emerald-800 text-xs rounded-xl border border-emerald-200 flex items-center gap-2">
+              <Check className="w-4 h-4 shrink-0 text-emerald-600" />
+              <span>{successMsg}</span>
             </div>
-            <div className="text-xs space-y-1">
-              <p className="font-bold text-[#111827]">Foto Fisik Barang Milik Daerah</p>
-              <p className="text-[#6B7280] text-[11px]">
-                Unggah dokumentasi fisik aset (label barcode/NIB atau nomor seri tampak jelas).
-              </p>
-              <label
-                htmlFor="photo-upload-bmd-btn"
-                className="inline-flex items-center gap-1.5 px-3 py-1 bg-white hover:bg-[#F3F4F6] border border-[#E5E7EB] rounded-lg text-[11px] font-semibold text-[#111827] cursor-pointer transition-colors shadow-2xs"
-              >
-                <Upload className="w-3.5 h-3.5 text-[#0F766E]" />
-                Pilih Foto Barang
-              </label>
-              <input
-                id="photo-upload-bmd-btn"
-                type="file"
-                accept="image/*"
-                onChange={handlePhotoUpload}
-                className="hidden"
-              />
+          )}
+
+          {/* Photo Section with Multi-mode & Canvas Optimizer */}
+          <div className="p-4 bg-[#F8FAFC] rounded-2xl border border-[#E2E8F0] space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-bold text-[#0F172A] flex items-center gap-1.5">
+                  <Camera className="w-4 h-4 text-[#0F766E]" />
+                  Foto Dokumentasi Fisik Barang Milik Daerah (BMD)
+                </span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                  {photoSizeBadge}
+                </span>
+              </div>
+
+              {/* Mode switch buttons */}
+              <div className="flex items-center gap-1 bg-white p-1 rounded-xl border border-[#E2E8F0] text-[11px]">
+                <button
+                  type="button"
+                  onClick={() => setPhotoInputMode('upload')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
+                    photoInputMode === 'upload'
+                      ? 'bg-[#0F766E] text-white shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Unggah Foto
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPhotoInputMode('url')}
+                  className={`px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
+                    photoInputMode === 'url'
+                      ? 'bg-[#0F766E] text-white shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Tautan URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowPresetPicker(prev => !prev)}
+                  className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
+                    showPresetPicker
+                      ? 'bg-amber-500 text-white shadow-2xs font-semibold'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                  }`}
+                >
+                  <Sparkles className="w-3 h-3" />
+                  Galeri Standar
+                </button>
+              </div>
             </div>
+
+            {/* Photo Preview & Upload Controls */}
+            <div className="flex items-start gap-4">
+              <div className="relative group shrink-0">
+                <img
+                  src={fotoBarang}
+                  alt="Preview Barang"
+                  className="w-28 h-24 rounded-xl object-cover border-2 border-white shadow-md bg-slate-100"
+                  onError={() => {
+                    // Fallback to placeholder if url fails
+                    setFotoBarang(DEFAULT_PHOTO_PLACEHOLDER);
+                  }}
+                />
+                {isCompressingPhoto && (
+                  <div className="absolute inset-0 bg-slate-950/70 rounded-xl flex flex-col items-center justify-center text-white text-[10px] gap-1">
+                    <Loader2 className="w-5 h-5 animate-spin text-teal-300" />
+                    <span>Mengompres...</span>
+                  </div>
+                )}
+                <label
+                  htmlFor="photo-upload-bmd-quick"
+                  className="absolute inset-0 bg-slate-900/60 rounded-xl text-white opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center cursor-pointer transition-opacity text-[10px]"
+                  title="Ganti Foto"
+                >
+                  <Camera className="w-4 h-4 mb-0.5" />
+                  Ganti Foto
+                </label>
+                <input
+                  id="photo-upload-bmd-quick"
+                  type="file"
+                  accept="image/*"
+                  onChange={handlePhotoUpload}
+                  className="hidden"
+                />
+              </div>
+
+              <div className="flex-1 space-y-2 text-xs">
+                {photoInputMode === 'upload' && (
+                  <div>
+                    <p className="text-slate-600 text-[11px] leading-relaxed">
+                      Pilih foto dari kamera ponsel atau komputer (label NIB, merek, nomor seri terlihat jelas). Foto akan
+                      <strong className="text-teal-700"> dioptimalkan & dikompres otomatis</strong> sehingga tersimpan cepat dan tidak membebani memori.
+                    </p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <label
+                        htmlFor="photo-upload-bmd-main"
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-[#0F766E] hover:bg-[#0d6861] text-white rounded-xl text-xs font-semibold cursor-pointer shadow-xs transition-colors"
+                      >
+                        {isCompressingPhoto ? (
+                          <>
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            Memproses Foto...
+                          </>
+                        ) : (
+                          <>
+                            <Upload className="w-3.5 h-3.5" />
+                            Pilih File Foto / Buka Kamera
+                          </>
+                        )}
+                      </label>
+                      <input
+                        id="photo-upload-bmd-main"
+                        ref={fileInputRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                        className="hidden"
+                      />
+
+                      <button
+                        type="button"
+                        onClick={handleResetPhoto}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 text-slate-500 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 rounded-xl text-[11px] font-medium transition-colors cursor-pointer"
+                        title="Kembalikan ke foto standar"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Reset Foto
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {photoInputMode === 'url' && (
+                  <div className="space-y-1.5">
+                    <p className="text-slate-600 text-[11px]">
+                      Masukkan tautan langsung gambar (Google Drive publik, server foto, atau tautan gambar web):
+                    </p>
+                    <div className="flex gap-2">
+                      <div className="relative flex-1">
+                        <LinkIcon className="w-3.5 h-3.5 text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="url"
+                          value={urlInputVal}
+                          onChange={e => setUrlInputVal(e.target.value)}
+                          placeholder="https://example.com/foto-laptop.jpg"
+                          className="w-full pl-8 pr-3 py-1.5 text-xs bg-white border border-[#CBD5E1] rounded-xl text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#0F766E]/20"
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={handleApplyUrl}
+                        className="px-3 py-1.5 bg-[#0F766E] hover:bg-[#0d6861] text-white rounded-xl text-xs font-semibold cursor-pointer transition-colors"
+                      >
+                        Terapkan
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Quick Preset Asset Gallery Modal / Collapsible */}
+            {showPresetPicker && (
+              <div className="p-3 bg-white rounded-xl border border-amber-200 shadow-sm space-y-2 animate-in fade-in duration-200">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-bold text-amber-900 flex items-center gap-1.5">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-600" />
+                    Pilih Foto Standar Kategori BMD (1-Klik Terapkan):
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPresetPicker(false)}
+                    className="p-1 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 pt-1">
+                  {PRESET_ASSET_PHOTOS.map(preset => (
+                    <button
+                      key={preset.id}
+                      type="button"
+                      onClick={() => handleSelectPreset(preset.url, preset.label)}
+                      className="group p-1.5 bg-slate-50 hover:bg-teal-50 border border-slate-200 hover:border-teal-400 rounded-xl text-left transition-all cursor-pointer flex flex-col items-center"
+                    >
+                      <img
+                        src={preset.url}
+                        alt={preset.label}
+                        className="w-full h-14 rounded-lg object-cover mb-1 border border-slate-200 group-hover:scale-105 transition-transform"
+                      />
+                      <span className="text-[10px] font-semibold text-slate-800 text-center line-clamp-1 leading-tight group-hover:text-teal-800">
+                        {preset.label}
+                      </span>
+                      <span className="text-[9px] text-slate-500 line-clamp-1">
+                        {preset.kategori}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

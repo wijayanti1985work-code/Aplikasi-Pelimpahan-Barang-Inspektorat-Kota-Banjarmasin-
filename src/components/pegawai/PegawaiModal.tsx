@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Upload, Check, User, AlertCircle, Camera, Building2, MapPin } from 'lucide-react';
 import type { Pegawai, StatusPegawai, UnitKerja } from '../../types/index.ts';
+import { compressImageFile } from '../../utils/imageCompressor.ts';
 
 interface PegawaiModalProps {
   initialData?: Pegawai;
@@ -83,22 +84,23 @@ export const PegawaiModal: React.FC<PegawaiModalProps> = ({
     }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handlePhotoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 2 * 1024 * 1024) {
-      alert('Ukuran foto maksimal 2 MB');
-      return;
+    try {
+      const result = await compressImageFile(file, {
+        maxWidth: 400,
+        maxHeight: 400,
+        quality: 0.8,
+        targetMaxKb: 80,
+      });
+      setFoto(result.dataUrl);
+    } catch {
+      alert('Gagal memproses foto pegawai. Pastikan file berformat gambar yang valid.');
+    } finally {
+      if (e.target) e.target.value = '';
     }
-
-    const reader = new FileReader();
-    reader.onload = event => {
-      if (event.target?.result) {
-        setFoto(event.target.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
